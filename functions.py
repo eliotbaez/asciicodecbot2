@@ -1,4 +1,4 @@
-# TODO: Finish rewriting stod() and dtos()
+# TODO: reformat sto* functions, use python's built-in functions instead if possible
 # NOTE: parse_ functions are deprecated and thus should not be used. They are only here for compatibility reasons with asciicodecbot v0.1-1.0
 
 def rot13(string_in = ""):
@@ -89,9 +89,6 @@ def xtos(hexstr = "", start_ind = 0):
         elif 65 <= character and character <= 70:
             num += (character - 55) * 1
         
-        #num += (128 / 2**bitno) * (ord(hexstr[index + bitno]) - 48)
-        #print(ord(binstr[index + bitno])- 48, 128/ 2**bitno)
-        #num += 128 * (ord(binstr[index]) - 48);
         str += chr(int(num))
         index += 2
         if index >= len(hexstr):
@@ -126,11 +123,6 @@ def parse_hex(hexstr = "", start_ind = 0):
                         #print("not a hex")
                         index += charno + 1# increment index by bit number
                         break
-                    #else: #if it is hex
-                        #print("yes x")
-                        #print("charno=",charno)
-                        #print(noData)
-                        #do nothing
                     if charno == 1:
                         #code
                         
@@ -155,8 +147,6 @@ def parse_hex(hexstr = "", start_ind = 0):
         num = int(0)
         for bitno in range(0, 8):
             num += (128 / 2**bitno) * (ord(binstr[index + bitno]) - 48);
-            #print(ord(binstr[index + bitno])- 48, 128/ 2**bitno)
-            #num += 128 * (ord(binstr[index]) - 48);
         str += chr(int(num))
         index += 8
         if index >= len(binstr):
@@ -192,8 +182,6 @@ def btos(binstr = "", start_ind = 0):
         num = int(0)
         for bitno in range(0, 8):
             num += (128 / 2**bitno) * (ord(binstr[index + bitno]) - 48);
-            #print(ord(binstr[index + bitno])- 48, 128/ 2**bitno)
-            #num += 128 * (ord(binstr[index]) - 48);
         str += chr(int(num))
         index += 8
         if index + 1 >= len(binstr):
@@ -223,10 +211,6 @@ def parse_bin(binstr = ""):
                         #print("not a bit")
                         index += charno + 1# shift index right by bit number
                         break
-                    #else: #if it is either 1 or 0
-                        #print("yes bit")
-                        #print(charno)
-                        #do nothing
                     if charno == 7:
                         #code
                         
