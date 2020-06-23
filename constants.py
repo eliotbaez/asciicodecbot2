@@ -18,7 +18,7 @@ CMD_ENCODE = 0x002
 CMD_DECODE = 0x003
 CMD_USAGE  = 0x004
 
-code types
+# code types
 CODE_BIN   = 0x010
 CODE_HEX   = 0x020
 CODE_DEC   = 0x030
