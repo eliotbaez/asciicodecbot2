@@ -4,8 +4,10 @@ A Reddit bot for text conversion using the ASCII standard, utilizing [PRAW](http
 ## Hosting the bot
 Hosting the bot is simple and takes 1 argument. ASCIICodecBot responds to specially-formatted comments that mention its username. The bot is called from the command line, and runs indefinitely until a Keyboard Interrupt is sent. All other exceptions will be caught and the bot will continue waiting for invocations.
 
-Usage: 
+Usage:
+ 
     $ python3 asciicodecbot [n]
+
 where `n` is the delay in seconds between subsequent checks of the Reddit inbox. Smaller numbers yield less latency. If `n` is omitted, the delay defaults to 30 seconds.
 
 ## Summoning the bot
