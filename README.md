@@ -33,7 +33,7 @@ the ability to reply.
     
     Commands:
       help,info - display this help information
-      usage     - [NOT YET IMPLEMENTED] display simple usage instructions
+      usage     - display simple usage instructions
       encode    - encode a message into numbers
       decode    - decode numbers into text
     
