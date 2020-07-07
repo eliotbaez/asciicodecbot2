@@ -7,9 +7,10 @@ import re
 import os
 import datetime
 import time
+import traceback
 
 import functions # function definitions in separate file to declutter main script
-import constants # same as above but for consts
+import constants # same as above but for constants
 import private # this info should not be publicly available
 
 reddit = praw.Reddit(
@@ -35,66 +36,60 @@ else:
         posts_seen = f.read()
         posts_seen = posts_seen.split("\n")
         posts_seen = list(filter(None, posts_seen))
+
 cache = ""
-
-
 
 if len(sys.argv) > 1:
     time_interval = int(sys.argv[1])
 else:
     time_interval = 30
 
-post_is_deleted = False
 starting_timestamp = int(time.time())
-#time_interval = 30
-service_requested = ""
 iterations = 0
 
 if time_interval < 1:
     time_interval = 30
 
+# main loop
 while True:
     reply_qty = 0
     iterations += 1
+    
     try:
         while time.time() % time_interval > 0.5:
             sys.stdout.write("\r%02d seconds until refresh..." % (time_interval - time.time() % time_interval))
             sys.stdout.flush()
             time.sleep(0.5)
     except:
-        print(reply_qty, '\n')
+        print("\n\n-- %d REPLIES SENT --\n" % reply_qty)
         raise
-    
-    print("\n%d\niteration %d\n" % (int(time.time()), iterations))
+        
+    print("\niteration %d\n" % iterations)
     print("****In mentions:****\n")
     
-    #print("in submission: ", submission.title)
-    #for comment in submission.comments.list():
-    #for comment in reddit.inbox.mentions(limit=100):
     try:
         for comment in reddit.inbox.unread(mark_read = True, limit = None):
-            if (comment.id not in posts_replied_to) and (comment.id not in posts_seen) and re.search("u/asciicodecbot", comment.body, re.IGNORECASE):
+            if (comment.id not in posts_replied_to) and (comment.id not in posts_seen):
                 author = comment.author
                 submission = comment.submission
+                post_is_deleted = False
+
+                if comment.body == "[deleted]" or comment.body == "[removed]":
+                    print ("[post not accessible]")
+                    post_is_deleted = True
                 
-                if comment.body != "[deleted]":
-                    print("in r/%s" % comment.subreddit)
-                    print("by u/%s" % author.name)
-                    # print("submission id =", submission.id)
-                    # print("comment id=", comment.id)
-                    print("comment body:\n\n%s\n" % (comment.body))
-                    
-                    # print("parent id=", comment.parent_id)
-                    #print("made it past bool")
-                replySent = False                
+                replySent = False
                 
                 if not post_is_deleted:
+                    print("in r/%s" % comment.subreddit)
+                    print("by u/%s" % author.name)
+                    print("comment body:\n\n%s\n" % (comment.body))
+                    
+                
+                
                     try:
-                        if "asciicodecbot" not in author.name:
+                        if "asciicodecbot" not in author.name: # avoid replying to self
                             
-                            service_requested = "none"
-
-                            #match = re.search("u/asciicodecbot (\w+)( (\w+)( (\w+))?)?(: )?(.*)", comment.body, re.IGNORECASE)
                             match = re.search("(?s)u/asciicodecbot (\w+)(?:(?: ?(?:(?:(\w*)(?: ?(\w*))?)?))?)(?:(: )?)(.*)", comment.body, re.IGNORECASE)  
                             if match:
                                 command = match.group(1).lower()
@@ -132,7 +127,6 @@ while True:
                                 service_requested |= constants.MOD_SELF
                             else: # field is blank
                                 service_requested |= constants.MOD_PARENT
-                            
 
                             if comment.id not in cache: # we are now clear to reply
                                 # first set the text which will act as the target
@@ -196,14 +190,20 @@ while True:
                             else:
                                 print("no reply sent: no valid service requested\n\n")
                         else:
-                            print("no reply sent: comment posted by u/asciicodecbot\n\n")
+                            print("no reply sent: comment posted by self\n\n")
                     except KeyboardInterrupt:
                         print(reply_qty, "replies sent\n\n")
                         #raise
-                    except:
+                    except: # any other exception
+                        # time to write to a log for debug
                         print("No reply sent: exception occurred:\n", sys.exc_info()[0])
-                        # uncomment for debug
-                        #raise
+                        print("Check ./.log/asciicodecbot.log for details.")
+                        with open("./.log/asciicodecbot.log", "at") as log:
+                            log.write("[%s]\n" % datetime.datetime.fromtimestamp(time.time()))
+                            log.write("comment id: %s\n" % comment.id)
+                            log.write("body:\n%s\n" % comment.body)
+                            log.write(traceback.format_exc())
+                            log.write("End of entry\n\n")
                 else:
                     print("no reply sent: post is deleted\n\n")
             posts_seen.append(comment.id)
