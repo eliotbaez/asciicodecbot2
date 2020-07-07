@@ -196,6 +196,7 @@ while True:
                         #raise
                     except: # any other exception
                         # time to write to a log for debug
+                        print("\a") # auditory notification for bot host
                         print("No reply sent: exception occurred:\n", sys.exc_info()[0])
                         print("Check ./.log/asciicodecbot.log for details.")
                         with open("./.log/asciicodecbot.log", "at") as log:
