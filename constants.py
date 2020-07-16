@@ -3,6 +3,8 @@
 
 help_message = '    ASCIICodecBot ver. 2.0 - encode and decode ASCII text using various\n    number systems\n    \n    Usage: u/asciicodecbot <command>[ <codetype>][: <text>]\n    \n    Commands:\n      help,info - display this help information\n      usage     - display simple usage instructions\n      encode    - encode a message into numbers\n      decode    - decode numbers into text\n    \n    Code Types:\n      binary,bin      - bytes of binary, separated by spaces\n      hexadecimal,hex - bytes of hexadeximal, separated by spaces\n      decimal,dec     - decimal numbers separated by spaces\n      rot13           - simple ROT13 encryption\n    NOTE: if no code type is provided, binary is implied.\n    \n    ASCIICodecBot will encode/decode the parent comment/submission of the\n    comment in which it was mentioned. If desired, you can invoke\n    ASCIICodecBot and provide it text in a single comment, by appending your\n    command with a ": " and your text.\n    \n    Usage Examples:\n      u/asciicodecbot encode\n      u/asciicOdecbot decode hex\n      u/ASCIICODECBOt encode binary: your text goes here!\n    \n    Report bugs to u/Nissingmo.'
 
+err_no_command = 'Error: You need to issue a command.\n'
+
 usage_instructions = '    Basic Usage: u/asciicodecbot <command>[ <codetype>][: <text>]\n    Commands: help,info; usage; encode; decode\n    Code types: binary, decimal, hexadecimal, ROT13\n'
 
 # masks and flags
