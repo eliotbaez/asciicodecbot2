@@ -97,12 +97,19 @@ while True:
                                 modifier = match.group(3).lower()
                                 target_indicator = match.group(4) # this group is either ": " or blank
                                 self_source = match.group(5) # this is everything else 
-                            
+                            else:
+                                # no match was found, but the username was still mentioned
+                                command = ""
+                                code = ""
+                                modifier = ""
+
                             # time to figure out what the requested service is
                             service_requested = 0x000
                             
                             # command parse
-                            if command == "help" or command == "info":
+                            if command == "":
+                                service_requested |= constants.CMD_NONE
+                            elif command == "help" or command == "info":
                                 service_requested |= constants.CMD_HELP
                             elif command == "encode":
                                 service_requested |= constants.CMD_ENCODE
@@ -122,7 +129,7 @@ while True:
                                 service_requested |= constants.CODE_ROT13
                             
                             # modifiers parse
-                            # 'modifier' has no effect as of now, but will be left in for future additions 
+                            # note that 'modifier' has no effect as of now, but will be left in for future additions 
                             if target_indicator == ": ":
                                 service_requested |= constants.MOD_SELF
                             else: # field is blank
