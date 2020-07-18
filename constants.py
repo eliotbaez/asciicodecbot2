@@ -5,7 +5,11 @@ help_message = '    ASCIICodecBot ver. 2.0 - encode and decode ASCII text using 
 
 err_no_command = 'Error: You need to issue a command.\n'
 
-usage_instructions = '    Basic Usage: u/asciicodecbot <command>[ <codetype>][: <text>]\n    Commands: help,info; usage; encode; decode\n    Code types: binary, decimal, hexadecimal, ROT13\n'
+err_code_unknown = 'Error: Codetype "%s" is unknown.\n'
+
+err_command_unknown = 'Error: Command "%s" is unknown.\n'
+
+usage_instructions = '\n    Basic Usage: u/asciicodecbot <command>[ <codetype>][: <text>]\n    Commands: help,info; usage; encode; decode\n    Code types: binary, decimal, hexadecimal, ROT13\n'
 
 # masks and flags
 # these leave room for future functionality without needing to add much code to implement it

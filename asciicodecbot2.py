@@ -99,9 +99,7 @@ while True:
                                 self_source = match.group(5) # this is everything else 
                             else:
                                 # no match was found, but the username was still mentioned
-                                command = ""
-                                code = ""
-                                modifier = ""
+                                command = code = modifier = target_indicator = self_source = ""
 
                             # time to figure out what the requested service is
                             service_requested = 0x000
@@ -117,7 +115,9 @@ while True:
                                 service_requested |= constants.CMD_DECODE
                             elif command == "usage":
                                 service_requested |= constants.CMD_USAGE
-                            
+                            else:
+                                service_requested |= constants.CMD_UNKNOWN
+
                             # code parse
                             if code == "" or code == "bin" or code == "binary":
                                 service_requested |= constants.CODE_BIN
@@ -127,6 +127,8 @@ while True:
                                 service_requested |= constants.CODE_DEC
                             elif code == "rot13":
                                 service_requested |= constants.CODE_ROT13
+                            else:
+                                service_requested |= constants.CODE_UNKNOWN
                             
                             # modifiers parse
                             # note that 'modifier' has no effect as of now, but will be left in for future additions 
@@ -144,14 +146,19 @@ while True:
                                         target = submission.selftext
                                     else:
                                         target = comment.parent().body
-                                
-                                if service_requested & constants.MASK_CMD == constants.CMD_HELP:
+                                if service_requested & constants.MASK_CMD == constants.CMD_NONE:
+                                    comment.reply(constants.err_no_command + constants.usage_instructions)
+                                    cache += comment.id
+                                    posts_replied_to.append(comment.id)
+                                    replySent = True
+                                    print("reply sent: error message, missing command")
+                                elif service_requested & constants.MASK_CMD == constants.CMD_HELP:
                                     comment.reply(constants.help_message)
                                     cache += comment.id
                                     posts_replied_to.append(comment.id)
                                     replySent = True
                                     print("reply sent: help message.")
-                                if service_requested & constants.MASK_CMD == constants.CMD_USAGE:
+                                elif service_requested & constants.MASK_CMD == constants.CMD_USAGE:
                                     comment.reply(constants.usage_instructions)
                                     cache += comment.id
                                     posts_replied_to.append(comment.id)
@@ -170,6 +177,9 @@ while True:
                                     if service_requested & constants.MASK_CODE == constants.CODE_ROT13:
                                         comment.reply(functions.rot13(target))
                                         print("reply sent: ROT13.")
+                                    if service_requested & constants.MASK_CODE == constants.CODE_UNKNOWN:
+                                        comment.reply((constants.err_code_unknown % code) + constants.usage_instructions)
+                                        print("reply sent: error message, code unknown.")
                                     cache += comment.id
                                     posts_replied_to.append(comment.id)
                                     replySent = True
@@ -186,10 +196,18 @@ while True:
                                     if service_requested & constants.MASK_CODE == constants.CODE_ROT13:
                                         comment.reply(functions.rot13(target))
                                         print("reply sent: ROT13.")
+                                    if service_requested & constants.MASK_CODE == constants.CODE_UNKNOWN:
+                                        comment.reply((constants.err_code_unknown % code) + constants.usage_instructions)
+                                        print("reply sent: error message, code unknown.")
                                     cache += comment.id
                                     posts_replied_to.append(comment.id)
                                     replySent = True
-
+                                elif service_requested & constants.MASK_CMD == constants.CMD_UNKNOWN:
+                                    comment.reply((constants.err_command_unknown % command) + constants.usage_instructions)
+                                    print("reply sent: error message, command unknown.")
+                                    cache += comment.id
+                                    posts_replied_to.append(comment.id)
+                                    replySent = True
                                 # done
                                 
                             if replySent:
