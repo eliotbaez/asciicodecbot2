@@ -226,7 +226,7 @@ while True:
                         print("Check ./.log/asciicodecbot.log for details.")
                         with open("./.log/asciicodecbot.log", "at") as log:
                             log.write("[%s]\n" % datetime.datetime.fromtimestamp(time.time()))
-                            log.write("comment id: %s\n" % comment.id)
+                            log.write("comment permalink: %s\n" % comment.permalink)
                             log.write("body:\n%s\n" % comment.body)
                             log.write(traceback.format_exc())
                             log.write("End of entry\n\n")
