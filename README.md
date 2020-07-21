@@ -55,3 +55,13 @@ the ability to reply.
       u/ASCIICODECBOt encode binary: your text goes here!
     
     Report bugs to u/Nissingmo.
+
+## Notes
+
+- I have noticed that many of my commit messages have referred to
+"commands." Nobody has expressed any confusion as of the writing of
+this note, but I would still like to clarify that these commands refer
+to the commands issued in the form of Reddit comments. I understand
+that there's the possibility to program commands in the sense of
+command line arguments. That is not what I am referring to in my
+commit messages.
