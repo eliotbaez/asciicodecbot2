@@ -24,6 +24,7 @@ CMD_HELP     = 0x001
 CMD_ENCODE   = 0x002
 CMD_DECODE   = 0x003
 CMD_USAGE    = 0x004
+CMD_THROW    = 0x00E
 CMD_UNKNOWN  = 0x00F
 
 # code types

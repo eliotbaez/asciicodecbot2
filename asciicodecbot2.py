@@ -107,6 +107,8 @@ while True:
                             # command parse
                             if command == "":
                                 service_requested |= constants.CMD_NONE
+                            elif command == "throw":
+                                service_requested |= constants.CMD_THROW
                             elif command == "help" or command == "info":
                                 service_requested |= constants.CMD_HELP
                             elif command == "encode":
@@ -152,6 +154,13 @@ while True:
                                     posts_replied_to.append(comment.id)
                                     replySent = True
                                     print("reply sent: error message, missing command")
+                                elif service_requested & constants.MASK_CMD == constants.CMD_THROW:
+                                    comment.reply("Exception thrown. Task failed successfully.")
+                                    cache += comment.id
+                                    posts_replied_to.append(comment.id)
+                                    replySent = True
+                                    print("reply sent: manually thrown exception.")
+                                    assert(False)
                                 elif service_requested & constants.MASK_CMD == constants.CMD_HELP:
                                     comment.reply(constants.help_message)
                                     cache += comment.id
@@ -226,7 +235,7 @@ while True:
                         print("Check ./.log/asciicodecbot.log for details.")
                         with open("./.log/asciicodecbot.log", "at") as log:
                             log.write("[%s]\n" % datetime.datetime.fromtimestamp(time.time()))
-                            log.write("comment permalink: %s\n" % comment.permalink)
+                            log.write("comment permalink: http://reddit.com%s\n" % comment.context)
                             log.write("body:\n%s\n" % comment.body)
                             log.write(traceback.format_exc())
                             log.write("End of entry\n\n")
