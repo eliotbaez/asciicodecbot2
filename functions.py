@@ -12,7 +12,19 @@ def rot13(string_in = ""):
         elif 97 <= d and d <= 122:
             d = (d - 84) % 26 + 97
         else:
-            pass # no modification is to be done on non-alphanumeric characters
+            pass # no modification is to be done on non-alphabet characters
+        string_out += chr(d)
+    return string_out
+
+# ROT5 same as above function, but for digits only
+def rot5(string_in = ""):
+    string_out = ""
+    for c in string_in:
+        d = ord(c)
+        if 48 <= d and d <= 57:
+            d = (d - 43) % 10 + 48
+        else:
+            pass # no modification is to be done on non-numeric characters
         string_out += chr(d)
     return string_out
 

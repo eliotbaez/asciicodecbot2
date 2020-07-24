@@ -5,7 +5,7 @@ of text and converts it into a numerical representation of said text,
 and vice versa.
 
 ## Hosting the bot
-Hosting the bot is simple and takes 1 argument. ASCIICodecBot responds
+Hosting the bot is simple and takes no arguments. ASCIICodecBot responds
 to specially-formatted comments that mention its username. The bot is
 called from the command line, and runs indefinitely until a Keyboard
 Interrupt is sent. All other exceptions will be caught and the bot will
@@ -15,7 +15,8 @@ Usage:
  
     $ python3 asciicodecbot
 
-No arguments are required or recognized for the execution.
+No arguments are required for execution. Any arguments provided will be
+ignored and will not affect execution.
 
 ## Summoning the bot
 
@@ -39,7 +40,7 @@ the ability to reply.
       binary,bin      - bytes of binary, separated by spaces
       hexadecimal,hex - bytes of hexadeximal, separated by spaces
       decimal,dec     - decimal numbers separated by spaces
-      rot13           - simple ROT13 encryption
+      rot5/13/18      - simple ROT5, ROT13 and ROT18 cipher
     NOTE: if no code type is provided, binary is implied.
     
     ASCIICodecBot will encode/decode the parent comment/submission of the
