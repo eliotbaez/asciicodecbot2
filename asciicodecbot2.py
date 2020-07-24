@@ -38,56 +38,35 @@ else:
         posts_seen = list(filter(None, posts_seen))
 
 cache = ""
+reply_qty = 0
 
-if len(sys.argv) > 1:
-    time_interval = int(sys.argv[1])
-else:
-    time_interval = 30
+# MAIN PORTION OF SCRIPT
 
-starting_timestamp = int(time.time())
-iterations = 0
+print("*** READING FROM INBOX ***\n")
 
-if time_interval < 1:
-    time_interval = 30
+try:
+    for comment in praw.models.util.stream_generator(reddit.inbox.unread):
+        if (comment.id not in posts_replied_to) and (comment.id not in posts_seen):
+            author = comment.author
+            submission = comment.submission
+            post_is_deleted = False
 
-# main loop
-while True:
-    reply_qty = 0
-    iterations += 1
-    
-    try:
-        while time.time() % time_interval > 0.5:
-            sys.stdout.write("\r%02d seconds until refresh..." % (time_interval - time.time() % time_interval))
-            sys.stdout.flush()
-            time.sleep(0.5)
-    except:
-        print("\n\n-- %d REPLIES SENT --\n" % reply_qty)
-        raise
-        
-    print("\niteration %d\n" % iterations)
-    print("****In mentions:****\n")
-    
-    try:
-        for comment in reddit.inbox.unread(mark_read = True, limit = None):
-            if (comment.id not in posts_replied_to) and (comment.id not in posts_seen):
-                author = comment.author
-                submission = comment.submission
-                post_is_deleted = False
-
-                if comment.body == "[deleted]" or comment.body == "[removed]":
-                    print ("[post not accessible]")
-                    post_is_deleted = True
+            if comment.body == "[deleted]" or comment.body == "[removed]":
+                print ("[post not accessible]")
+                post_is_deleted = True
+            
+            replySent = False
+            
+            if not post_is_deleted:
+                print("**************************")
+                print("in r/%s" % comment.subreddit)
+                print("by u/%s" % author.name)
+                print("comment body:\n\n%s\n" % (comment.body))
                 
-                replySent = False
-                
-                if not post_is_deleted:
-                    print("in r/%s" % comment.subreddit)
-                    print("by u/%s" % author.name)
-                    print("comment body:\n\n%s\n" % (comment.body))
-                    
-                
-                
-                    try:
+            
+            
+                try:
+                    if re.search("(?i)u/asciicodecbot", comment.body): # must be a username mention
                         if "asciicodecbot" not in author.name: # avoid replying to self
                             
                             match = re.search("(?s)u/asciicodecbot (\w+)(?:(?: ?(?:(?:(\w*)(?: ?(\w*))?)?))?)(?:(: )?)(.*)", comment.body, re.IGNORECASE)  
@@ -160,6 +139,7 @@ while True:
                                     posts_replied_to.append(comment.id)
                                     replySent = True
                                     print("reply sent: manually thrown exception.")
+                                    print("(Ignore below message)")
                                     assert(False)
                                 elif service_requested & constants.MASK_CMD == constants.CMD_HELP:
                                     comment.reply(constants.help_message)
@@ -222,41 +202,50 @@ while True:
                             if replySent:
                                 reply_qty += 1
                             else:
-                                print("no reply sent: no valid service requested\n\n")
+                                print("no reply sent: no valid service requested.\n")
                         else:
-                            print("no reply sent: comment posted by self\n\n")
-                    except KeyboardInterrupt:
-                        print(reply_qty, "replies sent\n\n")
-                        #raise
-                    except: # any other exception
-                        # time to write to a log for debug
-                        print("\a") # auditory notification for bot host
-                        print("No reply sent: exception occurred:\n", sys.exc_info()[0])
-                        print("Check ./.log/asciicodecbot.log for details.")
-                        with open("./.log/asciicodecbot.log", "at") as log:
-                            log.write("[%s]\n" % datetime.datetime.fromtimestamp(time.time()))
-                            log.write("comment permalink: http://reddit.com%s\n" % comment.context)
-                            log.write("body:\n%s\n" % comment.body)
-                            log.write(traceback.format_exc())
-                            log.write("End of entry\n\n")
-                else:
-                    print("no reply sent: post is deleted\n\n")
-            posts_seen.append(comment.id)
-            comment.mark_read()
-    except:
-        with open("posts_replied_to.txt", "w") as f:
-            for post_id in posts_replied_to:
-                f.write(post_id + "\n")
-        with open("posts_seen.txt", "w") as f:
-            for post_id in posts_seen:
-                f.write(post_id + "\n")
-        raise                           
-
+                            print("no reply sent: comment posted by self.\n")
+                    else:
+                        # not a username mention
+                        print("no reply sent: not a mention.\n")
+                except KeyboardInterrupt:
+                    print(reply_qty, "replies sent\n\n")
+                    #raise
+                except: # any other exception
+                    # time to write to a log for debug
+                    print("\a") # auditory notification for bot host
+                    print("No reply sent: exception occurred:\n", sys.exc_info()[0])
+                    print("Check ./.log/asciicodecbot.log for details.")
+                    with open("./.log/asciicodecbot.log", "at") as log:
+                        log.write("[%s]\n" % datetime.datetime.fromtimestamp(time.time()))
+                        log.write("comment permalink: http://reddit.com%s\n" % comment.context)
+                        log.write("body:\n%s\n" % comment.body)
+                        log.write(traceback.format_exc())
+                        log.write("End of entry\n\n")
+                    # exceptions can be triggered manually, so be sure to increment reply counter for those
+                    if replySent:
+                        reply_qty += 1
+            else:
+                print("no reply sent: post is deleted.\n")
+        else: 
+            print("[comment ID already in cache]")
+        # to be done after processing every comment
+        posts_seen.append(comment.id)
+        comment.mark_read()
+        print("%d replies have been sent\n" % reply_qty)
+    
+except:
     with open("posts_replied_to.txt", "w") as f:
         for post_id in posts_replied_to:
             f.write(post_id + "\n")
     with open("posts_seen.txt", "w") as f:
         for post_id in posts_seen:
             f.write(post_id + "\n")
-    print("%d replies sent.\n****   Done    ****\n\n\n" % reply_qty)
-    #break #only break for manual operation
+    raise                           
+
+with open("posts_replied_to.txt", "w") as f:
+    for post_id in posts_replied_to:
+        f.write(post_id + "\n")
+with open("posts_seen.txt", "w") as f:
+    for post_id in posts_seen:
+        f.write(post_id + "\n")
