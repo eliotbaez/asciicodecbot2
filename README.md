@@ -13,11 +13,9 @@ continue waiting for invocations.
 
 Usage:
  
-    $ python3 asciicodecbot [n]
+    $ python3 asciicodecbot
 
-where `n` is the delay in seconds between subsequent checks of the
-Reddit inbox. Smaller numbers yield less latency. If `n` is omitted,
-the delay defaults to 30 seconds.
+No arguments are required or recognized for the execution.
 
 ## Summoning the bot
 
