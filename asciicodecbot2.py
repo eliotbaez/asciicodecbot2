@@ -112,6 +112,8 @@ try:
                                 service_requested |= constants.CODE_ROT5
                             elif code == "rot18":
                                 service_requested |= constants.CODE_ROT18
+                            elif code == "rot47":
+                                service_requested |= constants.CODE_ROT47
                             else:
                                 service_requested |= constants.CODE_UNKNOWN
                             
@@ -176,6 +178,9 @@ try:
                                     if service_requested & constants.MASK_CODE == constants.CODE_ROT18:
                                         comment.reply(functions.rot13(functions.rot5(target)))
                                         print("reply sent: ROT18.")
+                                    if service_requested & constants.MASK_CODE == constants.CODE_ROT47:
+                                        comment.reply(functions.rot47(target))
+                                        print("reply sent: ROT47.")
                                     if service_requested & constants.MASK_CODE == constants.CODE_UNKNOWN:
                                         comment.reply((constants.err_code_unknown % code) + constants.usage_instructions)
                                         print("reply sent: error message, code unknown.")
@@ -201,6 +206,9 @@ try:
                                     if service_requested & constants.MASK_CODE == constants.CODE_ROT18:
                                         comment.reply(functions.rot13(functions.rot5(target)))
                                         print("reply sent: ROT18.")
+                                    if service_requested & constants.MASK_CODE == constants.CODE_ROT47:
+                                        comment.reply(functions.rot47(target))
+                                        print("reply sent: ROT47.")
                                     if service_requested & constants.MASK_CODE == constants.CODE_UNKNOWN:
                                         comment.reply((constants.err_code_unknown % code) + constants.usage_instructions)
                                         print("reply sent: error message, code unknown.")

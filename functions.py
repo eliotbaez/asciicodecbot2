@@ -28,6 +28,18 @@ def rot5(string_in = ""):
         string_out += chr(d)
     return string_out
 
+# ROT47 similar to the above, but with all ASCII printable characters
+def rot47(string_in = ""):
+    string_out = ""
+    for c in string_in:
+        d = ord(c)
+        if 33 <= d and d <= 126:
+            d = (d + 14) % 94 + 33
+        else:
+            pass # no modification is to be done on non-printable characters
+        string_out += chr(d)
+    return string_out
+
 # string to decimal
 def stod(string = ""):
     decstr = ""
