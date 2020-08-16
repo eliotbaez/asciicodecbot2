@@ -161,13 +161,13 @@ try:
                                     print("reply sent: basic usage")
                                 elif service_requested & constants.MASK_CMD == constants.CMD_ENCODE:
                                     if service_requested & constants.MASK_CODE == constants.CODE_BIN:
-                                        comment.reply(functions.stob(target))
+                                        comment.reply(functions.encode_bin(target))
                                         print("reply sent: binary.")
                                     if service_requested & constants.MASK_CODE == constants.CODE_HEX:
-                                        comment.reply(functions.stox(target))
+                                        comment.reply(functions.encode_hex(target))
                                         print("reply sent: hexadeximal.")
                                     if service_requested & constants.MASK_CODE == constants.CODE_DEC:
-                                        comment.reply(functions.stod(target))
+                                        comment.reply(functions.encode_dec(target))
                                         print("reply sent: decimal.")
                                     if service_requested & constants.MASK_CODE == constants.CODE_ROT13:
                                         comment.reply(functions.rot13(target))
@@ -189,13 +189,13 @@ try:
                                     replySent = True
                                 elif service_requested & constants.MASK_CMD == constants.CMD_DECODE:
                                     if service_requested & constants.MASK_CODE == constants.CODE_BIN:
-                                        comment.reply(functions.btos(target))
+                                        comment.reply(functions.decode_bin(target))
                                         print("reply sent: text.")
                                     if service_requested & constants.MASK_CODE == constants.CODE_HEX:
-                                        comment.reply(functions.xtos(target))
+                                        comment.reply(functions.decode_hex(target))
                                         print("reply sent: text.")
                                     if service_requested & constants.MASK_CODE == constants.CODE_DEC:
-                                        comment.reply(functions.dtos(target))
+                                        comment.reply(functions.decode_dec(target))
                                         print("reply sent: text.")
                                     if service_requested & constants.MASK_CODE == constants.CODE_ROT13:
                                         comment.reply(functions.rot13(target))

@@ -41,7 +41,7 @@ def rot47(string_in = ""):
     return string_out
 
 # string to decimal
-def stod(string = ""):
+def encode_dec(string = ""):
     decstr = ""
     for c in string:
         if 0 <= ord(c) and ord(c) < 256:
@@ -50,15 +50,15 @@ def stod(string = ""):
     return decstr
 
 # decimal to string
-def dtos(decstr = ""):
-    str = ""
+def decode_dec(decstr = ""):
+    string = ""
     buf = 0
     c = 0
 
     while c < len(decstr):
         if decstr[c] == ' ':
             if 0 <= buf and buf < 256:
-                str += chr(buf)
+                string += chr(buf)
             buf = 0
             c += 1
             continue
@@ -67,16 +67,14 @@ def dtos(decstr = ""):
             buf += int(decstr[c])
             c += 1
     if buf != 0:
-        str += chr(buf)
-    return str
+        string += chr(buf)
+    return string
 
 # string to hex
-def stox(str = "", start_ind = 0):
+def encode_hex(string = ""):
     hexstr = ""
-    if start_ind < 0:
-        return ""
-    for c in range(start_ind, len(str)):
-        i = ord(str[c])
+    for c in range(0, len(string)):
+        i = ord(string[c])
         j = i - i % 16
         j = int(j / 16) # j is now representative of first hex digit
         if j < 10:
@@ -98,14 +96,11 @@ def stox(str = "", start_ind = 0):
     return hexstr
 
 # hex to string
-def xtos(hexstr = "", start_ind = 0):
-    str = ""
-    if start_ind < 0:
-        return ""
-    index = start_ind
+def decode_hex(hexstr = ""):
+    string = ""
+    index = 0
     while len(hexstr) - index >= 2:
         num = int(0)
-        #for bitno in range(0, 2):
         
         character = ord(hexstr[index + 0])
         if 48 <= character and character <= 57:
@@ -119,22 +114,20 @@ def xtos(hexstr = "", start_ind = 0):
         elif 65 <= character and character <= 70:
             num += (character - 55) * 1
         
-        str += chr(int(num))
+        string += chr(int(num))
         index += 2
         if index >= len(hexstr):
             break
         if hexstr[index] == ' ':
             index += 1
         
-    return str
+    return string
 
 # string to binary
-def stob(str = "", start_ind = 0):
+def encode_bin(string = ""):
     binstr = ""
-    if start_ind < 0:
-        return ""
-    for c in range(start_ind, len(str)):
-        i = ord(str[c])
+    for c in range(0, len(string)):
+        i = ord(string[c])
         for counter in range(8):
             if (i >= 128): # if even
                 binstr = binstr + '1'
@@ -147,16 +140,14 @@ def stob(str = "", start_ind = 0):
     return binstr
 
 # binary to string
-def btos(binstr = "", start_ind = 0):
-    str = ""
-    if start_ind < 0:
-        return ""
-    index = start_ind
+def decode_bin(binstr = ""):
+    string = ""
+    index = 0
     while index < len(binstr):
         num = int(0)
         for bitno in range(0, 8):
             num += (128 / 2**bitno) * (ord(binstr[index + bitno]) - 48);
-        str += chr(int(num))
+        string += chr(int(num))
         index += 8
         if index + 1 >= len(binstr):
             break
@@ -164,4 +155,4 @@ def btos(binstr = "", start_ind = 0):
         while not (binstr[index] == '1' or binstr[index] == '0'):
             index += 1
         
-    return str
+    return string
