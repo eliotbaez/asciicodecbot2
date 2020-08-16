@@ -53,6 +53,60 @@ def encode_base64(string_in = ""):
     string_out = "".join(list_out)
     return string_out
 
+# base64 to string
+def decode_base64(string_in = ""):
+    string_out = ""
+    
+    string_in = string_in.replace('=', '') # remove padding characters
+    list_in = list(string_in)
+    # translate text into integers
+    i = 0
+    while i < len(list_in):
+        c = ord(list_in[i])
+        if 65 <= c and c <= 90: # capital alphabet
+            c -= 65
+        if 97 <= c and c <= 122: # lowercase alphabet
+            c -= 71
+        if 48 <= c and c <= 57: # numbers
+            c += 4
+        elif c == 43: # '+' symbol
+            c == 62
+        elif c == 47: # '/' symbol
+            c = 63
+        list_in[i] = chr(c)
+        i += 1
+    # group integers into byte triplets
+    i = 0
+    group = 0
+    empty_bytes = (4 - (len(string_in) % 4)) % 4
+    print(empty_bytes)
+    while i < len(string_in):
+        group = 0
+
+        if len(string_in) + empty_bytes - i <= 4: # only if on last group
+            print("last group")
+            group |= (ord(list_in[i]) << 18) # first 2 chars will always be valid
+            group |= (ord(list_in[i + 1]) << 12)
+            if empty_bytes == 1 or empty_bytes == 0: # if only last byte used padding or none used
+                group |= (ord(list_in[i + 2]) << 6)
+            if empty_bytes == 0: # if no padding was needed
+                group |= ord(list_in[i + 3])
+        else: # for all other character groups
+            group |= (ord(list_in[i]) << 18)
+            group |= (ord(list_in[i + 1]) << 12)
+            group |= (ord(list_in[i + 2]) << 6)
+            group |= ord(list_in[i + 3])
+
+        # now split into 3 bytes
+        for char in range(2,-1,-1): # range of 2, 1, 0
+            c = (group >> (8 * char)) & 255
+            # append the character to the output string
+            string_out += chr(c)
+        i += 4
+    # remove any padding characters
+    #string_out = string_out[:(len(string_out) - empty_bytes)]
+    return string_out
+
 # ROT13 is the same for encoding and decoding, so only one function
 def rot13(string_in = ""):
     string_out = ""
