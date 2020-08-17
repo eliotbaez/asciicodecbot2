@@ -65,38 +65,40 @@ def decode_base64(string_in = ""):
         c = ord(list_in[i])
         if 65 <= c and c <= 90: # capital alphabet
             c -= 65
-        if 97 <= c and c <= 122: # lowercase alphabet
+        elif 97 <= c and c <= 122: # lowercase alphabet
             c -= 71
-        if 48 <= c and c <= 57: # numbers
+        elif 48 <= c and c <= 57: # numbers
             c += 4
         elif c == 43: # '+' symbol
             c == 62
         elif c == 47: # '/' symbol
             c = 63
-        list_in[i] = chr(c)
+        list_in[i] = c
         i += 1
+    #print(list_in)
     # group integers into byte triplets
     i = 0
     group = 0
     empty_bytes = (4 - (len(string_in) % 4)) % 4
-    print(empty_bytes)
+    #print(empty_bytes)
     while i < len(string_in):
         group = 0
 
         if len(string_in) + empty_bytes - i <= 4: # only if on last group
-            print("last group")
-            group |= (ord(list_in[i]) << 18) # first 2 chars will always be valid
-            group |= (ord(list_in[i + 1]) << 12)
+            #print("last group")
+            group |= (list_in[i] << 18) # first 2 chars will always be valid
+            group |= (list_in[i + 1] << 12)
             if empty_bytes == 1 or empty_bytes == 0: # if only last byte used padding or none used
-                group |= (ord(list_in[i + 2]) << 6)
+                group |= (list_in[i + 2] << 6)
             if empty_bytes == 0: # if no padding was needed
-                group |= ord(list_in[i + 3])
+                group |= list_in[i + 3]
         else: # for all other character groups
-            group |= (ord(list_in[i]) << 18)
-            group |= (ord(list_in[i + 1]) << 12)
-            group |= (ord(list_in[i + 2]) << 6)
-            group |= ord(list_in[i + 3])
-
+            #print("regular group")
+            group |= (list_in[i] << 18)
+            group |= (list_in[i + 1] << 12)
+            group |= (list_in[i + 2] << 6)
+            group |= list_in[i + 3]
+        #print(group)
         # now split into 3 bytes
         for char in range(2,-1,-1): # range of 2, 1, 0
             c = (group >> (8 * char)) & 255
