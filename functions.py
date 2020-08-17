@@ -55,9 +55,19 @@ def encode_base64(string_in = ""):
 
 # base64 to string
 def decode_base64(string_in = ""):
+    string_in = string_in.replace('=', '') # remove padding characters
+    # check for input validity
+    invalid_chars = 0
+    for char in string_in:
+        if not (char.isalnum() or char == '/' or char == '+'):
+            invalid_chars += 1
+    if invalid_chars > 0: # there are invalid characters
+        return ("Input invalid.")
+    elif len(string_in) % 4 == 1: # not enough characters
+        return ("Input invalid.")
+        
     string_out = ""
     
-    string_in = string_in.replace('=', '') # remove padding characters
     list_in = list(string_in)
     # translate text into integers
     i = 0
