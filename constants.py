@@ -18,6 +18,7 @@ help_message = '\
       hexadecimal,hex - bytes of hexadeximal, separated by spaces\n\
       decimal,dec     - decimal numbers separated by spaces\n\
       rot5/13/18/47   - simple ROT5, ROT13, ROT18 and ROT47 cipher\n\
+      base64          - base-64 encoding for plaintext\n\
     NOTE: if no code type is provided, binary is implied.\n\
     \n\
     ASCIICodecBot will encode/decode the parent comment/submission of the\n\
@@ -28,7 +29,7 @@ help_message = '\
     Usage Examples:\n\
       u/asciicodecbot encode\n\
       u/asciicOdecbot decode hex\n\
-      u/ASCIICODECBOt encode binary: your text goes here!\n\
+      u/ASCIICODECBOt encode binary: sample text sample text\n\
     \n\
     Report bugs to u/Nissingmo.\
 '
@@ -43,7 +44,7 @@ usage_instructions = '\
 \n\
     Basic Usage: u/asciicodecbot <command>[ <codetype>][: <text>]\n\
     Commands: help,info; usage; encode; decode\n\
-    Code types: binary, decimal, hexadecimal, ROT5/13/18/47\n\
+    Code types: binary, decimal, hexadecimal, ROT5/13/18/47, base64\n\
 '
 
 # masks and flags

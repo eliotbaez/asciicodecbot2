@@ -41,6 +41,7 @@ the ability to reply.
       hexadecimal,hex - bytes of hexadeximal, separated by spaces
       decimal,dec     - decimal numbers separated by spaces
       rot5/13/18/47   - simple ROT5, ROT13, ROT18, and ROT47 cipher
+      base64          - base-64 encoding for plaintext
     NOTE: if no code type is provided, binary is implied.
     
     ASCIICodecBot will encode/decode the parent comment/submission of the
