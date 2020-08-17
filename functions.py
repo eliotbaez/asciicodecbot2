@@ -14,7 +14,7 @@ def encode_base64(string_in = ""):
         group = 0
         if length_in - i <= 3: # only if on last triplet
             group |= (ord(string_in[i]) << 16) # first byte will always be valid
-            if empty_bytes == 1 : # if only last byte will need padding
+            if empty_bytes == 1 or empty_bytes == 0: # if only last byte will need padding or none needed
                 group |= (ord(string_in[i + 1]) << 8)
             if empty_bytes == 0: # if no padding will be needed
                 group |= ord(string_in[i + 2])
@@ -104,7 +104,7 @@ def decode_base64(string_in = ""):
             string_out += chr(c)
         i += 4
     # remove any padding characters
-    #string_out = string_out[:(len(string_out) - empty_bytes)]
+    string_out = string_out[:(len(string_out) - empty_bytes)]
     return string_out
 
 # ROT13 is the same for encoding and decoding, so only one function
