@@ -34,7 +34,7 @@ const wchar_t * decodeBin (const wchar_t * binStr) {
 			break;
 		}
 		for (bitNo = 0; bitNo < 8; bitNo++) {
-			num += 128 >> bitNo * (sBinStr[index + bitNo] - 48);
+			num += (128 >> bitNo) * (sBinStr[index + bitNo] - 48);
 		}
 		/* printf ("%d\n", num); */
 		stringOut[outputIndex++] = (char) num;
