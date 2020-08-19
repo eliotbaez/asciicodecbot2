@@ -262,6 +262,8 @@ def decode_bin(binstr = ""):
     index = 0
     while index < len(binstr):
         num = int(0)
+        if index + 8 > len(binstr):
+            break;
         for bitno in range(0, 8):
             num += (128 / 2**bitno) * (ord(binstr[index + bitno]) - 48);
         string += chr(int(num))
