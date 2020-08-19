@@ -3,3 +3,4 @@ posts_replied_to.txt
 posts_seen.txt
 __pycache__/*
 .log/*
+functions.so
