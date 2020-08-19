@@ -113,6 +113,116 @@ const wchar_t * encodeBin (const wchar_t * string) {
 	/* remember to free wBinaryString after use! */
 }
 
+/* decode string of hexadecimal into plaintext */
+
+const wchar_t * decodeHex (const wchar_t * hexStr) {
+	/* allocate memory for short string */
+	char * sHexStr = (char *) malloc (wcslen (hexStr) + 1);
+	/* convert wide input into short string */
+	size_t characters;
+	characters = wcstombs (sHexStr, hexStr, MAX_COMMENT_LENGTH);
+	sHexStr[characters] = 0;
+
+	char stringOut[MAX_COMMENT_LENGTH + 1];
+
+	int index = 0;
+	int outputIndex = 0;
+
+	while (strlen (sHexStr) - index >= 2) {
+		int num = 0;
+
+		if ('0' <= sHexStr[index] && sHexStr[index] <= '9')
+			num += (sHexStr[index] - 48) * 16;
+		else if ('A' <= sHexStr[index] && sHexStr[index] <= 'F')
+			num += (sHexStr[index] - 55) * 16;
+		index++;
+		
+		if ('0' <= sHexStr[index] && sHexStr[index] <= '9')
+			num += (sHexStr[index] - 48);
+		else if ('A' <= sHexStr[index] && sHexStr[index] <= 'F')
+			num += (sHexStr[index] - 55);
+		index++;
+
+		stringOut[outputIndex++] = num;
+
+		if (index > strlen (sHexStr))
+			break;
+		if (sHexStr[index] == ' ')
+			index += 1;
+	}
+
+	/* terminate short string */
+	stringOut[outputIndex] = 0;
+
+	/* dynamically allocate memory for output string */
+	wchar_t * wStringOut = malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
+	/* convert short string to wchar_t string */
+	characters = mbstowcs (wStringOut, stringOut, MAX_COMMENT_LENGTH);
+	/* terminate wide string */
+	wStringOut[characters] = 0;
+	/* free memory used for short input string */
+	free (sHexStr);
+
+	return wStringOut;
+	/* remember to free wStringOut after use! */
+}
+
+/* encode plaintext string into hexadeximal */
+
+const wchar_t * encodeHex (const wchar_t * string) {
+	/* allocate memory for short string */
+	char * sString = (char *) malloc (wcslen (string) + 1);
+	/* convert wide input into short string */
+	size_t characters;
+	characters = wcstombs (sString, string, MAX_COMMENT_LENGTH);
+	sString[characters] = 0;
+
+	char hexString[MAX_COMMENT_LENGTH + 1];
+
+	int index;
+	int outputIndex = 0;
+	
+	int i, j;
+	for (index = 0; index < strlen (sString); index++) {
+		i = sString[index];
+		j = i - (i % 16);
+		j /= 16; /* j now represents the first hex digit */
+		if (j < 10)
+			hexString[outputIndex++] = j + 48;
+		else if (j < 16)
+			hexString[outputIndex++] = j + 55;
+		else
+			hexString[outputIndex++] = '0';
+		
+		i -= j * 16; /* i represents the second hex digit */
+		if (i < 10)
+			hexString[outputIndex++] = i + 48;
+		else if (i < 16)
+			hexString[outputIndex++] = i + 55;
+		else
+			hexString[outputIndex++] = '0';
+
+		hexString[outputIndex++] = ' ';
+	}
+
+	/* terminate short string */
+	hexString[outputIndex] = 0;
+
+	/* dynamically allocate memory for output string */
+	wchar_t * wHexString = malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
+	/* convert short string to wchar_t string */
+	characters = mbstowcs (wHexString, hexString, MAX_COMMENT_LENGTH);
+	/* terminate wide string */
+	wHexString[characters] = 0;
+	/* free memory used for short input string */
+	free (sString);
+
+	return wHexString;
+	/* remember to free wHexString after use! */
+}
+		
+
+
 /* this was for testing purposes only */
 
 int main () {
