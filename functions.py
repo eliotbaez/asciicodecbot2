@@ -16,10 +16,17 @@ cfunctions = ctypes.cdll.LoadLibrary("./cfunctions.so")
 # successfully be passed to freewchar() afterward.
 cfunctions.freewchar.argtypes = [ctypes.c_void_p]
 cfunctions.freewchar.restype = ctypes.c_void_p
+# bin
 cfunctions.encodeBin.argtypes = [ctypes.c_wchar_p]
 cfunctions.encodeBin.restype = ctypes.c_void_p
 cfunctions.decodeBin.argtypes = [ctypes.c_wchar_p]
 cfunctions.decodeBin.restype = ctypes.c_void_p
+# dec
+cfunctions.encodeDec.argtypes = [ctypes.c_wchar_p]
+cfunctions.encodeDec.restype = ctypes.c_void_p
+cfunctions.decodeDec.argtypes = [ctypes.c_wchar_p]
+cfunctions.decodeDec.restype = ctypes.c_void_p
+# hex
 cfunctions.encodeHex.argtypes = [ctypes.c_wchar_p]
 cfunctions.encodeHex.restype = ctypes.c_void_p
 cfunctions.decodeHex.argtypes = [ctypes.c_wchar_p]
@@ -183,32 +190,18 @@ def rot47(string_in = ""):
 
 # string to decimal
 def encode_dec(string = ""):
-    decstr = ""
-    for c in string:
-        if 0 <= ord(c) and ord(c) < 256:
-            decstr += str(ord(c)) + ' '
-
+    pdecstr = cfunctions.encodeDec(string)
+    pdecstr = ctypes.cast(pdecstr, ctypes.c_wchar_p)
+    decstr = pdecstr.value
+    cfunctions.freewchar(pdecstr)
     return decstr
 
 # decimal to string
 def decode_dec(decstr = ""):
-    string = ""
-    buf = 0
-    c = 0
-
-    while c < len(decstr):
-        if decstr[c] == ' ':
-            if 0 <= buf and buf < 256:
-                string += chr(buf)
-            buf = 0
-            c += 1
-            continue
-        if decstr[c].isdigit():
-            buf *= 10
-            buf += int(decstr[c])
-            c += 1
-    if buf != 0:
-        string += chr(buf)
+    pstring = cfunctions.decodeDec(decstr)
+    pstring = ctypes.cast(pstring, ctypes.c_wchar_p)
+    string = pstring.value
+    cfunctions.freewchar(pstring)
     return string
 
 # string to hex
