@@ -288,10 +288,15 @@ wchar_t * encodeDec (const wchar_t * string) {
 	while (index < strlen (sString)) {
 		/* is this if statement even necessary? chars can't go above 255 */
 		if (0 <= sString[index] && sString[index] < 256) {
-			if (sString[index] > 99) /* if there is a significant digit in the hundreds place */
+			if (sString[index] > 99) {/* if there is a significant digit in the hundreds place */
+				/* append hundreds digit */
 				decimalString[outputIndex++] = sString[index] / 100 + 48;
-			if ((sString[index] % 100) - (sString[index] % 10) > 0) /* significant tens digit */
+				/* append tens digit */
+				decimalString[outputIndex++] = ((sString[index] % 100) - (sString[index] % 10)) / 10 + 48;
+			}
+			else if ((sString[index] % 100) - (sString[index] % 10) > 0) /* significant tens digit but no hundreds */
 				decimalString[outputIndex++] = ((sString[index] % 100) - (sString[index] % 10)) /10 + 48;
+			/* ones digit will always be appended */
 			decimalString[outputIndex++] = (sString[index] % 10) + 48;
 			decimalString[outputIndex++] = ' ';
 		}
