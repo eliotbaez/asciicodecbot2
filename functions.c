@@ -27,10 +27,12 @@ const wchar_t * decodeBin (const wchar_t * binStr) {
 	int outputIndex = 0;
 	
 	int num;
-	while (index < strlen (sBinStr)) {
+	size_t length = strlen (sBinStr);
+
+	while (index < length) {
 		num = 0;
 		int bitNo;
-		if (index + 8 > strlen (sBinStr)) {
+		if (index + 8 > length) {
 			break;
 		}
 		for (bitNo = 0; bitNo < 8; bitNo++) {
@@ -39,7 +41,7 @@ const wchar_t * decodeBin (const wchar_t * binStr) {
 		/* printf ("%d\n", num); */
 		stringOut[outputIndex++] = (char) num;
 		index += 8;
-		if (index + 1 >= strlen (sBinStr)) {
+		if (index + 1 >= length) {
 			break;
 		}
 
