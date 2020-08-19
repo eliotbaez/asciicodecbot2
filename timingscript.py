@@ -1,13 +1,11 @@
 # timingscript.py
+# a script to test the execution time of all the available functions for optimization
 
 from time import time
 import functions
+
+# import a sample string that already exists
 from constants import help_message
-
-help_message = help_message * 3
-print (len(help_message))
-
-print ("USING PYTHON FUNCTIONS\n")
 
 start = time()
 string = functions.encode_bin(help_message)

@@ -80,8 +80,9 @@ const wchar_t * encodeBin (const wchar_t * string) {
 	
 	int index;
 	int outputIndex = 0;
+	size_t length = strlen (sString);
 
-	for (index = 0; index < strlen (sString); index++) {
+	for (index = 0; index < length; index++) {
 		char bit;
 		char i = sString[index];
 		for (bit = 0; bit < 8; bit++) {
@@ -129,8 +130,9 @@ const wchar_t * decodeHex (const wchar_t * hexStr) {
 
 	int index = 0;
 	int outputIndex = 0;
+	size_t length = strlen (sHexStr);
 
-	while (strlen (sHexStr) - index >= 2) {
+	while (length - index >= 2) {
 		int num = 0;
 
 		if ('0' <= sHexStr[index] && sHexStr[index] <= '9')
@@ -147,7 +149,7 @@ const wchar_t * decodeHex (const wchar_t * hexStr) {
 
 		stringOut[outputIndex++] = num;
 
-		if (index > strlen (sHexStr))
+		if (index > length)
 			break;
 		if (sHexStr[index] == ' ')
 			index += 1;
@@ -183,9 +185,10 @@ const wchar_t * encodeHex (const wchar_t * string) {
 
 	int index;
 	int outputIndex = 0;
+	size_t length = strlen (sString);
 	
 	int i, j;
-	for (index = 0; index < strlen (sString); index++) {
+	for (index = 0; index < length; index++) {
 		i = sString[index];
 		j = i - (i % 16);
 		j /= 16; /* j now represents the first hex digit */
@@ -237,9 +240,10 @@ wchar_t * decodeDec (const wchar_t * decStr) {
 
 	int index = 0;
 	int outputIndex = 0;
+	size_t length = strlen (sDecStr);
 	int buf = 0;
 
-	while (index < strlen (sDecStr)) {
+	while (index < length) {
 		if (sDecStr[index] == ' ') {
 			if (0 <= buf && buf < 256)
 				stringOut[outputIndex++] = buf;
@@ -286,8 +290,9 @@ wchar_t * encodeDec (const wchar_t * string) {
 	
 	int index = 0;
 	int outputIndex = 0;
+	size_t length = strlen (sString);
 
-	while (index < strlen (sString)) {
+	while (index < length) {
 		/* is this if statement even necessary? chars can't go above 255 */
 		if (0 <= sString[index] && sString[index] < 256) {
 			if (sString[index] > 99) {/* if there is a significant digit in the hundreds place */
