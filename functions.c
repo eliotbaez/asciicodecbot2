@@ -33,6 +33,9 @@ const wchar_t * decodeBin (const wchar_t * binStr) {
 	while (index < strlen (sBinStr)) {
 		num = 0;
 		int bitNo;
+		if (index + 8 > strlen (sBinStr)) {
+			break;
+		}
 		for (bitNo = 0; bitNo < 8; bitNo++) {
 			num += 128 >> bitNo * (sBinStr[index + bitNo] - 48);
 		}
