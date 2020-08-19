@@ -2,6 +2,30 @@
 # this file contains all the functions for use in encoding and decoding
 # any changes to the encoding/encoding algorithms may take place here without changing the main script
 
+# The functions defined in functions.py will act as wrappers for the C
+# functions as they become available. This will help to declutter the
+# main script.
+
+import ctypes
+
+cfunctions = ctypes.cdll.LoadLibrary("./cfunctions.so")
+
+# Please note that all of these functions actually return wchar_t *
+# they must be cast to the proper type before being used, but I am
+# keeping the return types set to void *, so that the pointer can
+# successfully be passed to freewchar() afterward.
+cfunctions.freewchar.argtypes = [ctypes.c_void_p]
+cfunctions.freewchar.restype = ctypes.c_void_p
+cfunctions.encodeBin.argtypes = [ctypes.c_wchar_p]
+cfunctions.encodeBin.restype = ctypes.c_void_p
+cfunctions.decodeBin.argtypes = [ctypes.c_wchar_p]
+cfunctions.decodeBin.restype = ctypes.c_void_p
+cfunctions.encodeHex.argtypes = [ctypes.c_wchar_p]
+cfunctions.encodeHex.restype = ctypes.c_void_p
+cfunctions.decodeHex.argtypes = [ctypes.c_wchar_p]
+cfunctions.decodeHex.restype = ctypes.c_void_p
+
+
 # string to base64
 def encode_base64(string_in = ""):
     string_out = ""
@@ -189,87 +213,32 @@ def decode_dec(decstr = ""):
 
 # string to hex
 def encode_hex(string = ""):
-    hexstr = ""
-    for c in range(0, len(string)):
-        i = ord(string[c])
-        j = i - i % 16
-        j = int(j / 16) # j is now representative of first hex digit
-        if j < 10:
-            hexstr += chr(j + 48)
-        elif j < 16:
-            hexstr += chr(j + 55)
-        else:
-            hexstr += '0'
-        
-        i -= j * 16 # i is second hex digit
-        if i < 10:
-            hexstr += chr(i + 48)
-        elif i < 16:
-            hexstr += chr(i + 55)
-        else:
-            hexstr += '0'
-        
-        hexstr += ' '
+    phexstr = cfunctions.encodeHex(string)
+    phexstr = ctypes.cast(phexstr, ctypes.c_wchar_p)
+    hexstr = phexstr.value
+    cfunctions.freewchar(phexstr)
     return hexstr
 
 # hex to string
 def decode_hex(hexstr = ""):
-    string = ""
-    index = 0
-    while len(hexstr) - index >= 2:
-        num = int(0)
-        
-        character = ord(hexstr[index + 0])
-        if 48 <= character and character <= 57:
-            num += (character - 48) * 16
-        elif 65 <= character and character <= 70:
-            num += (character - 55) * 16
-        
-        character = ord(hexstr[index + 1])
-        if 48 <= character and character <= 57:
-            num += (character - 48) * 1
-        elif 65 <= character and character <= 70:
-            num += (character - 55) * 1
-        
-        string += chr(int(num))
-        index += 2
-        if index >= len(hexstr):
-            break
-        if hexstr[index] == ' ':
-            index += 1
-        
+    pstring = cfunctions.decodeHex(hexstr)
+    pstring = ctypes.cast(pstring, ctypes.c_wchar_p)
+    string = pstring.value
+    cfunctions.freewchar(pstring)
     return string
 
 # string to binary
 def encode_bin(string = ""):
-    binstr = ""
-    for c in range(0, len(string)):
-        i = ord(string[c])
-        for counter in range(8):
-            if (i >= 128): # if even
-                binstr = binstr + '1'
-            else:
-                binstr = binstr + '0'
-            i = i << 1 # left shift i
-            if i > 255:
-                i -= 256
-        binstr = binstr + ' '
+    pbinstr = cfunctions.encodeBin(string)
+    pbinstr = ctypes.cast(pbinstr, ctypes.c_wchar_p)
+    binstr = pbinstr.value
+    cfunctions.freewchar(pbinstr)
     return binstr
 
 # binary to string
 def decode_bin(binstr = ""):
-    string = ""
-    index = 0
-    while index < len(binstr):
-        num = int(0)
-        for bitno in range(0, 8):
-            num += (128 / 2**bitno) * (ord(binstr[index + bitno]) - 48);
-        string += chr(int(num))
-        index += 8
-        if index + 1 >= len(binstr):
-            break
-
-        while not (binstr[index] == '1' or binstr[index] == '0'):
-            index += 1
-        
+    pstring = cfunctions.decodeBin(binstr)
+    pstring = ctypes.cast(pstring, ctypes.c_wchar_p)
+    string = pstring.value
+    cfunctions.freewchar(pstring)
     return string
