@@ -40,8 +40,8 @@ const wchar_t * decodeBin (const wchar_t * binStr) {
 		for (bitNo = 0; bitNo < 8; bitNo++) {
 			num += (128 >> bitNo) * (sBinStr[index + bitNo] - 48);
 		}
-		/* printf ("%d\n", num); */
-		stringOut[outputIndex++] = (char) num;
+		/* limit output to ASCII only, so nothing above 127 */
+		stringOut[outputIndex++] = (char) num & 0x7F;
 		index += 8;
 		if (index + 1 >= length) {
 			break;
@@ -157,7 +157,7 @@ const wchar_t * decodeHex (const wchar_t * hexStr) {
 			num += (sHexStr[index] - 55);
 		index++;
 
-		stringOut[outputIndex++] = num;
+		stringOut[outputIndex++] = (char) num & 0x7F;
 
 		if (index > length)
 			break;
@@ -262,8 +262,10 @@ wchar_t * decodeDec (const wchar_t * decStr) {
 
 	while (index < length) {
 		if (sDecStr[index] == ' ') {
-			if (0 <= buf && buf < 256)
-				stringOut[outputIndex++] = buf;
+			if (0 <= buf && buf < 128) {
+				/* limit output to ASCII only */
+				stringOut[outputIndex++] = (char) buf & 0x7F;
+			}
 			buf = 0;
 			index++;
 			continue;
@@ -275,7 +277,7 @@ wchar_t * decodeDec (const wchar_t * decStr) {
 		}
 	}
 	if (buf) /* if not equal to 0 */
-		stringOut[outputIndex++] = buf;
+		stringOut[outputIndex++] = (char) buf & 0x7F;
 
 	/* terminate short string */
 	stringOut[outputIndex] = 0;
