@@ -78,17 +78,19 @@ const wchar_t * encodeBin (const wchar_t * string) {
 	characters = wcstombs (sString, string, MAX_COMMENT_LENGTH);
 	sString[characters] = 0;
 	
-	/*
-	 * Allocate enough space to properly expand the string.
-	 * Each plaintext character will occupy 9 bytes expressed in binary,
-	 * so the string requires at most 9 * MAX_COMMENT_SIZE to be properly
-	 * stored. This string is later truncated when converted by mbstowcs ().
-	 */
-	char binaryString[MAX_COMMENT_LENGTH * 9 + 1];
+	char binaryString[MAX_COMMENT_LENGTH + 1];
 	
 	int index;
 	int outputIndex = 0;
+
 	size_t length = strlen (sString);
+	
+	/*
+	 * Each character of plaintext will occupy 9 characters
+	 * when expressed in binary. 8 bits + 1 space
+	 */
+	if (length > MAX_COMMENT_LENGTH / 9) 
+		length = MAX_COMMENT_LENGTH / 9;
 
 	for (index = 0; index < length; index++) {
 		char bit;
@@ -189,18 +191,18 @@ const wchar_t * encodeHex (const wchar_t * string) {
 	characters = wcstombs (sString, string, MAX_COMMENT_LENGTH);
 	sString[characters] = 0;
 	
-	/*
-	 * Similarly to encodeBin (), we will need to allocate enough
-	 * memory to successfully encode the entire string into hex.
-	 * Every character of plaintext will occupy 3 bytes expressed
-	 * in hexadecimal (2 characters and a space). See comment in
-	 * encodeBin for more information.
-	 */
-	char hexString[MAX_COMMENT_LENGTH * 3 + 1];
+	char hexString[MAX_COMMENT_LENGTH  + 1];
 
 	int index;
 	int outputIndex = 0;
 	size_t length = strlen (sString);
+	
+	/*
+	 * Each character of plaintext will occupy 3 characters
+	 * when expressed in hexadecimal. 2 digits + 1 space
+	 */
+	if (length > MAX_COMMENT_LENGTH / 3)
+		length = MAX_COMMENT_LENGTH / 3;
 	
 	int i, j;
 	for (index = 0; index < length; index++) {
