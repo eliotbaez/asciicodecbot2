@@ -2,7 +2,9 @@
 #include <string.h>
 #include <wchar.h>
 #include <stdio.h>
-#define MAX_COMMENT_LENGTH 40000
+
+/* Reddit maximum acceptable comment length */
+#define MAX_COMMENT_LENGTH 10000
 
 const wchar_t * freewchar (const wchar_t * ptr) {
 	free ((void *) ptr);
@@ -75,8 +77,14 @@ const wchar_t * encodeBin (const wchar_t * string) {
 	size_t characters;
 	characters = wcstombs (sString, string, MAX_COMMENT_LENGTH);
 	sString[characters] = 0;
-
-	char binaryString[MAX_COMMENT_LENGTH + 1];
+	
+	/*
+	 * Allocate enough space to properly expand the string.
+	 * Each plaintext character will occupy 9 bytes expressed in binary,
+	 * so the string requires at most 9 * MAX_COMMENT_SIZE to be properly
+	 * stored. This string is later truncated when converted by mbstowcs ().
+	 */
+	char binaryString[MAX_COMMENT_LENGTH * 9 + 1];
 	
 	int index;
 	int outputIndex = 0;
@@ -180,8 +188,15 @@ const wchar_t * encodeHex (const wchar_t * string) {
 	size_t characters;
 	characters = wcstombs (sString, string, MAX_COMMENT_LENGTH);
 	sString[characters] = 0;
-
-	char hexString[MAX_COMMENT_LENGTH + 1];
+	
+	/*
+	 * Similarly to encodeBin (), we will need to allocate enough
+	 * memory to successfully encode the entire string into hex.
+	 * Every character of plaintext will occupy 3 bytes expressed
+	 * in hexadecimal (2 characters and a space). See comment in
+	 * encodeBin for more information.
+	 */
+	char hexString[MAX_COMMENT_LENGTH * 3 + 1];
 
 	int index;
 	int outputIndex = 0;
@@ -285,8 +300,12 @@ wchar_t * encodeDec (const wchar_t * string) {
 	size_t characters;
 	characters = wcstombs (sString, string, MAX_COMMENT_LENGTH);
 	sString[characters] = 0;
-
-	char decimalString[MAX_COMMENT_LENGTH + 1];
+	
+	/* 
+	 * Every character of plaintext will occupy at most 4 characters
+	 * expressed in decimal (3 decimal digits + 1 space).
+	 */
+	char decimalString[MAX_COMMENT_LENGTH * 4 + 1];
 	
 	int index = 0;
 	int outputIndex = 0;
@@ -339,3 +358,4 @@ int main () {
 	printf ("\nyes\n");
 	return 0;
 }
+
