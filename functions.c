@@ -23,13 +23,26 @@ const wchar_t * decodeBin (const wchar_t * binStr) {
 	sBinStr[characters] = 0;
 	
 	char stringOut[MAX_COMMENT_LENGTH + 1];
-	/*stringOut = (char *) malloc (maxStringLength);*/ 
+	wchar_t * wStringOut;
 	
 	int index = 0;
 	int outputIndex = 0;
 	
 	int num;
 	size_t length = strlen (sBinStr);
+	
+	/* check that all characters are either binary or space */
+	for ( ; index < length; index++) {
+		num = sBinStr[index];
+		if (!(num == '0' || num == '1' || num == ' ')) {
+			/* return error message if invalid characters are found */
+			wStringOut = (wchar_t *) malloc (20 * sizeof (wchar_t));
+			wcscpy (wStringOut, L"Input invalid.");
+
+			free (sBinStr);
+			return wStringOut;
+		}
+	}
 
 	while (index < length) {
 		num = 0;
@@ -40,8 +53,10 @@ const wchar_t * decodeBin (const wchar_t * binStr) {
 		for (bitNo = 0; bitNo < 8; bitNo++) {
 			num += (128 >> bitNo) * (sBinStr[index + bitNo] - 48);
 		}
-		/* limit output to ASCII only, so nothing above 127 */
-		stringOut[outputIndex++] = (char) num & 0x7F;
+		/* Any non-ASCII characters replaced with dot */
+		stringOut[outputIndex++] = (num & 0x80)
+			? '.'
+			: (char) num;
 		index += 8;
 		if (index + 1 >= length) {
 			break;
@@ -56,7 +71,7 @@ const wchar_t * decodeBin (const wchar_t * binStr) {
 	stringOut[outputIndex] = 0;
 	
 	/* dynamically allocate memory for output string */
-	wchar_t * wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1)* sizeof (wchar_t));
+	wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1)* sizeof (wchar_t));
 	/* convert to wchar_t string */
 	characters = mbstowcs (wStringOut, stringOut, MAX_COMMENT_LENGTH);
 	/* terminate output wide string */
@@ -137,13 +152,41 @@ const wchar_t * decodeHex (const wchar_t * hexStr) {
 	sHexStr[characters] = 0;
 
 	char stringOut[MAX_COMMENT_LENGTH + 1];
+	wchar_t * wStringOut;
 
 	int index = 0;
 	int outputIndex = 0;
+	int num;
 	size_t length = strlen (sHexStr);
+	
+	/* check that all characters are valid hexadecimal or space */
+	for ( ; index < length; index++) {
+		num = sHexStr[index];
+		if (!(
+					'0' <= num && num <= '9'
+					|| 'a' <= num && num <= 'f'
+					|| 'A' <= num && num <= 'F'
+					|| num == ' ')) {
+			/* return error message if invalid characters are found */
+                        wStringOut = (wchar_t *) malloc (20 * sizeof (wchar_t));
+                        wcscpy (wStringOut, L"Input invalid.");
 
+                        free (sHexStr);
+                        return wStringOut;
+		}
+	}
+	
+	/* convert all lowercase to capital */
+	for (index = 0; index < length; index++) {
+		num = sHexStr[index];
+		if ('a' <= num && num <= 'f') {
+			sHexStr[index] = num - 32;
+		}
+	}
+
+	index = 0;
 	while (length - index >= 2) {
-		int num = 0;
+		num = 0;
 
 		if ('0' <= sHexStr[index] && sHexStr[index] <= '9')
 			num += (sHexStr[index] - 48) * 16;
@@ -156,8 +199,11 @@ const wchar_t * decodeHex (const wchar_t * hexStr) {
 		else if ('A' <= sHexStr[index] && sHexStr[index] <= 'F')
 			num += (sHexStr[index] - 55);
 		index++;
-
-		stringOut[outputIndex++] = (char) num & 0x7F;
+		
+		/* non-ASCII characters replaced with dot */
+		stringOut[outputIndex++] = (num & 0x80)
+			? '.'
+			:(char) num;
 
 		if (index > length)
 			break;
@@ -169,7 +215,7 @@ const wchar_t * decodeHex (const wchar_t * hexStr) {
 	stringOut[outputIndex] = 0;
 
 	/* dynamically allocate memory for output string */
-	wchar_t * wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
+	wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
 	/* convert short string to wchar_t string */
 	characters = mbstowcs (wStringOut, stringOut, MAX_COMMENT_LENGTH);
 	/* terminate wide string */
@@ -254,18 +300,34 @@ wchar_t * decodeDec (const wchar_t * decStr) {
 	sDecStr[characters] = 0;
 
 	char stringOut[MAX_COMMENT_LENGTH + 1];
+	wchar_t * wStringOut;
 
 	int index = 0;
 	int outputIndex = 0;
 	size_t length = strlen (sDecStr);
 	int buf = 0;
 
+	/* check that all characters are decimal or space */
+	for ( ; index < length; index++) {
+		buf = sDecStr[index];
+		if (!('0' <= buf && buf <= '9' || buf == ' ')) {
+			/* return error message if invalid characters are found */
+                        wStringOut = (wchar_t *) malloc (20 * sizeof (wchar_t));
+                        wcscpy (wStringOut, L"Input invalid.");
+
+                        free (sDecStr);
+                        return wStringOut;
+		}
+	}
+
+	index = 0;
+	buf = 0;
 	while (index < length) {
 		if (sDecStr[index] == ' ') {
-			if (0 <= buf && buf < 128) {
-				/* limit output to ASCII only */
-				stringOut[outputIndex++] = (char) buf & 0x7F;
-			}
+			/* non-ASCII characters replaced with dot */
+			stringOut[outputIndex++] = (buf & 0x80)
+				? '.'
+				: (char) buf;
 			buf = 0;
 			index++;
 			continue;
@@ -276,14 +338,18 @@ wchar_t * decodeDec (const wchar_t * decStr) {
 			index++;
 		}
 	}
-	if (buf) /* if not equal to 0 */
-		stringOut[outputIndex++] = (char) buf & 0x7F;
+	if (buf) { /* if buf not equal to 0 */
+		/* non-ASCII characters replaced with dot */
+		stringOut[outputIndex++] = (buf & 0x80)
+			? '.'
+			:(char) buf;
+	}
 
 	/* terminate short string */
 	stringOut[outputIndex] = 0;
 
 	/* dynamically allocate memory for output string */
-	wchar_t * wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
+	wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
 	/* convert short string to wchar_t string */
 	characters = mbstowcs (wStringOut, stringOut, MAX_COMMENT_LENGTH);
 	/* terminate wide string */
