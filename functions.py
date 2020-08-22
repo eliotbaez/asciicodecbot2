@@ -37,6 +37,9 @@ cfunctions.rot5.restype = ctypes.c_void_p
 # rot13
 cfunctions.rot13.argtypes = [ctypes.c_wchar_p]
 cfunctions.rot13.restype = ctypes.c_void_p
+# rot47
+cfunctions.rot47.argtypes = [ctypes.c_wchar_p]
+cfunctions.rot47.restype = ctypes.c_void_p
 
 
 # string to base64
@@ -174,16 +177,12 @@ def rot5(string_in = ""):
 
 # ROT47 similar to the above, but with all ASCII printable characters
 def rot47(string_in = ""):
-    string_out = ""
-    for c in string_in:
-        d = ord(c)
-        if 33 <= d and d <= 126:
-            d = (d + 14) % 94 + 33
-        else:
-            pass # no modification is to be done on non-printable characters
-        string_out += chr(d)
+    pstring_out = cfunctions.rot47(string_in)
+    pstring_out = ctypes.cast(pstring_out, ctypes.c_wchar_p)
+    string_out = pstring_out.value
+    cfunctions.freewchar(pstring_out)
     return string_out
-
+    
 # string to decimal
 def encode_dec(string = ""):
     pdecstr = cfunctions.encodeDec(string)

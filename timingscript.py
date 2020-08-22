@@ -36,3 +36,18 @@ start = time()
 string2 = functions.decode_hex(string)
 end = time()
 print ("decodeHex(): %lf ms" % ((end - start) * 1000))
+
+start = time()
+string2 = functions.rot5(string)
+end = time()
+print ("rot5()     : %lf ms" % ((end - start) * 1000))
+
+start = time()
+string2 = functions.rot13(string)
+end = time()
+print ("rot13()    : %lf ms" % ((end - start) * 1000))
+
+start = time()
+string2 = functions.rot47(string)
+end = time()
+print ("rot47()    : %lf ms" % ((end - start) * 1000))
