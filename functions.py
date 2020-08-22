@@ -34,6 +34,9 @@ cfunctions.decodeHex.restype = ctypes.c_void_p
 # rot5
 cfunctions.rot5.argtypes = [ctypes.c_wchar_p]
 cfunctions.rot5.restype = ctypes.c_void_p
+# rot13
+cfunctions.rot13.argtypes = [ctypes.c_wchar_p]
+cfunctions.rot13.restype = ctypes.c_void_p
 
 
 # string to base64
@@ -155,16 +158,10 @@ def decode_base64(string_in = ""):
 
 # ROT13 is the same for encoding and decoding, so only one function
 def rot13(string_in = ""):
-    string_out = ""
-    for c in string_in:
-        d = ord(c)
-        if 65 <= d and d <= 90:
-            d = (d - 52) % 26 + 65
-        elif 97 <= d and d <= 122:
-            d = (d - 84) % 26 + 97
-        else:
-            pass # no modification is to be done on non-alphabet characters
-        string_out += chr(d)
+    pstring_out = cfunctions.rot13(string_in)
+    pstring_out = ctypes.cast(pstring_out, ctypes.c_wchar_p)
+    string_out = pstring_out.value
+    cfunctions.freewchar(pstring_out)
     return string_out
 
 # ROT5 same as above function, but for digits only
