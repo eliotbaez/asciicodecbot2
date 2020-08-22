@@ -31,6 +31,9 @@ cfunctions.encodeHex.argtypes = [ctypes.c_wchar_p]
 cfunctions.encodeHex.restype = ctypes.c_void_p
 cfunctions.decodeHex.argtypes = [ctypes.c_wchar_p]
 cfunctions.decodeHex.restype = ctypes.c_void_p
+# rot5
+cfunctions.rot5.argtypes = [ctypes.c_wchar_p]
+cfunctions.rot5.restype = ctypes.c_void_p
 
 
 # string to base64
@@ -166,14 +169,10 @@ def rot13(string_in = ""):
 
 # ROT5 same as above function, but for digits only
 def rot5(string_in = ""):
-    string_out = ""
-    for c in string_in:
-        d = ord(c)
-        if 48 <= d and d <= 57:
-            d = (d - 43) % 10 + 48
-        else:
-            pass # no modification is to be done on non-numeric characters
-        string_out += chr(d)
+    pstring_out = cfunctions.rot5(string_in)
+    pstring_out = ctypes.cast(pstring_out, ctypes.c_wchar_p)
+    string_out = pstring_out.value
+    cfunctions.freewchar(pstring_out)
     return string_out
 
 # ROT47 similar to the above, but with all ASCII printable characters

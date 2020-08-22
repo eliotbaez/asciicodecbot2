@@ -415,6 +415,45 @@ wchar_t * encodeDec (const wchar_t * string) {
 	/* remember to free wDecimalString after use! */
 }
 
+/* ROT5 cipher */
+
+wchar_t * rot5 (const wchar_t * stringIn) {
+	/* allocate memory for short string */
+	char * sStringIn = (char *) malloc (wcslen (stringIn) + 1);
+	/* convert wide input into short string */
+	size_t characters;
+	characters = wcstombs (sStringIn, stringIn, MAX_COMMENT_LENGTH);
+	sStringIn[characters] = 0;
+
+	char stringOut[MAX_COMMENT_LENGTH + 1];
+
+	int index;
+	int num;
+	size_t length = strlen (sStringIn);
+	
+	for (index = 0; index < length; index++) {
+		num = sStringIn[index];
+		stringOut[index] = '0' <= num && num <= '9'
+			? (num - 43) % 10 + 48
+			: num;
+	}
+
+	/* terminate short string */
+	stringOut[index] = 0;
+	
+	/* dynamically allocate memory for output string */
+	wchar_t * wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
+	/* convert short string to wchar_t string */
+	characters = mbstowcs (wStringOut, stringOut, MAX_COMMENT_LENGTH);
+	/* terminate wide string */
+	wStringOut[characters] = 0;
+	/* free memory used for short input string */
+	free (sStringIn);
+
+	return wStringOut;
+	/* remember to free wStringOut after use! */
+}
+
 
 /* this was for testing purposes only */
 
