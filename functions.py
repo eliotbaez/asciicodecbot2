@@ -43,7 +43,8 @@ cfunctions.rot47.restype = ctypes.c_void_p
 # base64
 cfunctions.encodeBase64.argtypes = [ctypes.c_wchar_p]
 cfunctions.encodeBase64.restype = ctypes.c_void_p
-
+cfunctions.decodeBase64.argtypes = [ctypes.c_wchar_p]
+cfunctions.decodeBase64.restype = ctypes.c_void_p
 
 # string to base64
 def encode_base64(string_in = ""):
@@ -55,68 +56,10 @@ def encode_base64(string_in = ""):
 
 # base64 to string
 def decode_base64(string_in = ""):
-    string_in = string_in.replace('=', '') # remove padding characters
-    # check for input validity
-    invalid_chars = 0
-    for char in string_in:
-        if not (char.isalnum() or char == '/' or char == '+'):
-            invalid_chars += 1
-    if invalid_chars > 0: # there are invalid characters
-        return ("Input invalid.")
-    elif len(string_in) % 4 == 1: # not enough characters
-        return ("Input invalid.")
-        
-    string_out = ""
-    
-    list_in = list(string_in)
-    # translate text into integers
-    i = 0
-    while i < len(list_in):
-        c = ord(list_in[i])
-        if 65 <= c and c <= 90: # capital alphabet
-            c -= 65
-        elif 97 <= c and c <= 122: # lowercase alphabet
-            c -= 71
-        elif 48 <= c and c <= 57: # numbers
-            c += 4
-        elif c == 43: # '+' symbol
-            c == 62
-        elif c == 47: # '/' symbol
-            c = 63
-        list_in[i] = c
-        i += 1
-    #print(list_in)
-    # group integers into byte triplets
-    i = 0
-    group = 0
-    empty_bytes = (4 - (len(string_in) % 4)) % 4
-    #print(empty_bytes)
-    while i < len(string_in):
-        group = 0
-
-        if len(string_in) + empty_bytes - i <= 4: # only if on last group
-            #print("last group")
-            group |= (list_in[i] << 18) # first 2 chars will always be valid
-            group |= (list_in[i + 1] << 12)
-            if empty_bytes == 1 or empty_bytes == 0: # if only last byte used padding or none used
-                group |= (list_in[i + 2] << 6)
-            if empty_bytes == 0: # if no padding was needed
-                group |= list_in[i + 3]
-        else: # for all other character groups
-            #print("regular group")
-            group |= (list_in[i] << 18)
-            group |= (list_in[i + 1] << 12)
-            group |= (list_in[i + 2] << 6)
-            group |= list_in[i + 3]
-        #print(group)
-        # now split into 3 bytes
-        for char in range(2,-1,-1): # range of 2, 1, 0
-            c = (group >> (8 * char)) & 255
-            # append the character to the output string
-            string_out += chr(c)
-        i += 4
-    # remove any padding characters
-    string_out = string_out[:(len(string_out) - empty_bytes)]
+    pstring_out = cfunctions.decodeBase64(string_in)
+    pstring_out = ctypes.cast(pstring_out, ctypes.c_wchar_p)
+    string_out = pstring_out.value
+    cfunctions.freewchar(pstring_out)
     return string_out
 
 # ROT13 is the same for encoding and decoding, so only one function

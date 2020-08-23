@@ -628,3 +628,127 @@ wchar_t * encodeBase64 (const wchar_t * stringIn) {
 	return wStringOut;
 	/* remember to free wStringOut after use! */
 }
+
+/* base64 to plaintext */
+
+wchar_t * decodeBase64 (const wchar_t * stringIn) {
+	/* allocate memory for short string */
+	char * sStringIn = (char *) malloc (wcslen (stringIn) + 1);
+	/* convert wide input into short string */
+	size_t characters;
+	characters = wcstombs (sStringIn, stringIn, MAX_COMMENT_LENGTH);
+	sStringIn[characters] = 0;
+
+	char stringOut[MAX_COMMENT_LENGTH + 1];
+	wchar_t * wStringOut;
+	int outputIndex = 0;
+	
+	int index;
+	/* group must be at least 24 bits wide */
+	u_int32_t group;
+	char buf;
+	size_t length = strlen (sStringIn);
+	
+	int emptyBytes;
+	
+	/* trim off up to two padding characters */
+	for (buf = 0; buf < 1; buf++) { /* do twice :^) */
+		if (sStringIn[length - 1] == '=') {
+			sStringIn[--length] = 0;
+		}
+	}
+
+	/* check for invalid characters, exit if found */
+	for (index = 0; index < length; index++) {
+		buf = sStringIn[index];
+		if (!(
+					('A' <= buf && buf <= 'Z')
+					|| ('a' <= buf && buf <= 'z')
+					|| ('0' <= buf && buf <= '9')
+					|| buf == '/'
+					|| buf == '+')) {
+			/* return error message if invalid characters are found */
+                        wStringOut = (wchar_t *) malloc (20 * sizeof (wchar_t));
+                        wcscpy (wStringOut, L"Input invalid.");
+			
+                        free (sStringIn);
+                        return wStringOut;
+		}
+	}
+
+	/* else (implied) */
+	if (length % 4 == 1) { /* not enough characters */
+		/* return error message if invalid characters are found */
+		wStringOut = (wchar_t *) malloc (20 * sizeof (wchar_t));
+		wcscpy (wStringOut, L"Input invalid.");
+		
+		free (sStringIn);
+		return wStringOut;
+	}
+
+	/* translate text into integers */
+	index = 0;
+	while (index < length) {
+		buf = sStringIn[index];
+		if ('A' <= buf && buf <= 'Z') /* capital alphabet */
+			buf -= 65;
+		else if ('a' <= buf && buf <= 'z') /* small alphabet */
+			buf -= 71;
+		else if ('0' <= buf && buf <= '9') /* numbers */
+			buf += 4;
+		else if (buf == '+') /* these two are self explanatory */
+			buf = 62;
+		else if (buf == '/')
+			buf = 63;
+		sStringIn[index++] = buf;
+	}
+
+	/* group integers into byte triplets */
+	index = 0;
+	emptyBytes = (4 - (length % 4)) % 4;
+
+	while (index < length) {
+		group = 0;
+
+		if (length + emptyBytes - index <= 4) { /* only if on last group */
+			group |= sStringIn[index] << 18; /* first 2 chars will always be valid */
+			group |= sStringIn[index + 1] << 12; 
+			if (emptyBytes == 1 || emptyBytes == 0) /* if only last byte used padding or none used */
+				group |= sStringIn[index + 2] << 6;
+			if (emptyBytes == 0) /* if no padding was needed */
+				group |= sStringIn[index + 3];
+		} else { /* for all other character groups */
+			group |= sStringIn[index] << 18;
+			group |= sStringIn[index + 1] << 12;
+			group |= sStringIn[index + 2] << 6;
+			group |= sStringIn[index + 3];
+		}
+
+		/* now split into 3 bytes */
+		for (buf = 2; buf >= 0; buf--) {
+			stringOut[outputIndex] = (group >> (8 * buf));
+			if (stringOut[outputIndex] == 0) {
+				/* replace null with dot to avoid premature termination */
+				stringOut[outputIndex] = '.';
+			}
+			outputIndex++;
+		}
+		index += 4;
+	}
+
+	/* terminate output string and discard any empty bytes */
+	stringOut[outputIndex - emptyBytes] = 0;
+
+	/* dynamically allocate memory for output string */
+	wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
+	/* convert short string to wchar_t string */
+	characters = mbstowcs (wStringOut, stringOut, MAX_COMMENT_LENGTH);
+	/* terminate wide string */
+	wStringOut[characters] = 0;
+	/* free memory used for short input string */
+	free (sStringIn);
+
+	return wStringOut;
+	/* remember to free wStringOut after use! */
+}
+
