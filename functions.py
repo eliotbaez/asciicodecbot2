@@ -40,57 +40,17 @@ cfunctions.rot13.restype = ctypes.c_void_p
 # rot47
 cfunctions.rot47.argtypes = [ctypes.c_wchar_p]
 cfunctions.rot47.restype = ctypes.c_void_p
+# base64
+cfunctions.encodeBase64.argtypes = [ctypes.c_wchar_p]
+cfunctions.encodeBase64.restype = ctypes.c_void_p
 
 
 # string to base64
 def encode_base64(string_in = ""):
-    string_out = ""
-    length_in = len(string_in) # faster to read a variable than call a function
-    i = 0
-    group = 0
-    empty_bytes = (3 - (length_in % 3)) % 3
-    # split byte triplets into groups of three 6-bit characters
-    while i < length_in:
-        group = 0
-        if length_in - i <= 3: # only if on last triplet
-            group |= (ord(string_in[i]) << 16) # first byte will always be valid
-            if empty_bytes == 1 or empty_bytes == 0: # if only last byte will need padding or none needed
-                group |= (ord(string_in[i + 1]) << 8)
-            if empty_bytes == 0: # if no padding will be needed
-                group |= ord(string_in[i + 2])
-        else: # for all other byte triplets
-            group |= (ord(string_in[i]) << 16)
-            group |= (ord(string_in[i + 1]) << 8)
-            group |= ord(string_in[i + 2])
-
-        # now split into four 6-byte characters
-        for char in range(3,-1,-1): # range of 3, 2, 1, 0
-            c = (group >> (6 * char)) & 63
-            # append the character to the output string
-            string_out += chr(c)
-        i += 3
-    # convert string to list to assign individual characters
-    list_out = list(string_out)
-    # translate output characters into valid text
-    i = 0
-    while i < len(string_out):
-        c = ord(list_out[i])
-        if 0 <= c and c <= 25: # capital alphabet
-            c += 65
-        elif 26 <= c and c <= 51: # lowercase alphabet
-            c += 71
-        elif 52 <= c and c <= 61: # numbers
-            c -= 4
-        elif c == 62: # '+' symbol
-            c = 43
-        elif c == 63: # '/' symbol
-            c = 47
-        list_out[i] = chr(c)
-        i += 1
-    # overwrite padding characters
-    for i in range(len(list_out) - empty_bytes, len(list_out)):
-        list_out[i] = '='
-    string_out = "".join(list_out)
+    pstring_out = cfunctions.encodeBase64(string_in)
+    pstring_out = ctypes.cast(pstring_out, ctypes.c_wchar_p)
+    string_out = pstring_out.value
+    cfunctions.freewchar(pstring_out)
     return string_out
 
 # base64 to string

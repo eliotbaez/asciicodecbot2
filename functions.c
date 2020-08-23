@@ -163,9 +163,9 @@ const wchar_t * decodeHex (const wchar_t * hexStr) {
 	for ( ; index < length; index++) {
 		num = sHexStr[index];
 		if (!(
-					'0' <= num && num <= '9'
-					|| 'a' <= num && num <= 'f'
-					|| 'A' <= num && num <= 'F'
+					('0' <= num && num <= '9')
+					|| ('a' <= num && num <= 'f')
+					|| ('A' <= num && num <= 'F')
 					|| num == ' ')) {
 			/* return error message if invalid characters are found */
                         wStringOut = (wchar_t *) malloc (20 * sizeof (wchar_t));
@@ -310,7 +310,7 @@ wchar_t * decodeDec (const wchar_t * decStr) {
 	/* check that all characters are decimal or space */
 	for ( ; index < length; index++) {
 		buf = sDecStr[index];
-		if (!('0' <= buf && buf <= '9' || buf == ' ')) {
+		if (!(('0' <= buf && buf <= '9') || buf == ' ')) {
 			/* return error message if invalid characters are found */
                         wStringOut = (wchar_t *) malloc (20 * sizeof (wchar_t));
                         wcscpy (wStringOut, L"Input invalid.");
@@ -536,16 +536,95 @@ wchar_t * rot47 (const wchar_t * stringIn) {
 	/* remember to free wStringOut after use! */
 }
 
-/* this was for testing purposes only */
+/* plaintext string to base64 */
 
-int main () {
-	const wchar_t input[9];
-	scanf ("%ls", input);
-	const wchar_t * string = encodeBin (input);
-	printf ("%ls\n", string);
-	freewchar (string);
-	/* free (string);*/
-	printf ("\nyes\n");
-	return 0;
+wchar_t * encodeBase64 (const wchar_t * stringIn) {
+	/* allocate memory for short string */
+	char * sStringIn = (char *) malloc (wcslen (stringIn) + 1);
+	/* convert wide input into short string */
+	size_t characters;
+	characters = wcstombs (sStringIn, stringIn, MAX_COMMENT_LENGTH);
+	sStringIn[characters] = 0;
+	
+	char stringOut[MAX_COMMENT_LENGTH + 1];
+	int outputIndex = 0;
+
+	int index = 0;
+	/* group must be at least 24 bits wide */
+	u_int32_t group = 0; 
+	char buf;
+	size_t length = strlen (sStringIn);
+	/* ceiling division for integers */
+	if ((length / 3 + (length % 3 != 0)) * 4 > MAX_COMMENT_LENGTH) 
+		length = MAX_COMMENT_LENGTH / 4 * 3;
+	
+	int emptyBytes = (3 - (length % 3)) % 3;
+
+	/* split byte triplets into groups of three 6-bit characters */
+	while (index < length) {
+		group = 0;
+		if (length - index <= 3) {
+			/* only if on last triplet in input string: */
+			/* first byte will always be valid */
+			group |= sStringIn[index] << 16;
+			if (emptyBytes == 1 || emptyBytes == 0) {
+				/* only if last byte will need padding or if none needed */
+				group |= sStringIn[index + 1] << 8;
+			}
+			if (emptyBytes == 0) {
+				/* only if no padding will be needed */
+				group |= sStringIn[index + 2];
+			}
+		} else {
+			/* for all other byte triplets: */
+			group |= sStringIn[index] << 16;
+			group |= sStringIn[index + 1] << 8;
+			group |= sStringIn[index + 2];
+		}
+
+		/* now split into four 6-byte characters */
+		for (buf = 3; buf >= 0; buf--) 
+			stringOut[outputIndex++] = (group >> (6 * buf)) & 63;
+		index += 3;
+	}
+	/* terminate output string */
+	stringOut[outputIndex] = 0;
+
+	/* translate output characters into valid text */
+	index = 0;
+	/* more ceiling division for integers */
+	length = (length / 3 + (length % 3 != 0)) * 4;
+	while (index < length) {
+		buf = stringOut[index];
+		if (0 <= buf && buf < 26) /* capital alphabet */
+			buf += 65;
+		else if (26 <= buf && buf < 52) /* small alphabet */
+			buf += 71;
+		else if (52 <= buf && buf < 62) /* numbers */
+			buf -= 4;
+		else if (buf == 62) /* '+' symbol */
+			buf = 43;
+		else if (buf == 63) /* '/' symbol */
+			buf = 47;
+		stringOut[index++] = buf;
+	}
+
+	/* overwrite padding characters */
+	for (index = length - emptyBytes; index < length; index++)
+		stringOut[index] = '=';
+	
+	/* terminate short string */
+	stringOut[index] = 0;
+	
+	/* dynamically allocate memory for output string */
+	wchar_t * wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
+	/* convert short string to wchar_t string */
+	characters = mbstowcs (wStringOut, stringOut, MAX_COMMENT_LENGTH);
+	/* terminate wide string */
+	wStringOut[characters] = 0;
+	/* free memory used for short input string */
+	free (sStringIn);
+
+	return wStringOut;
+	/* remember to free wStringOut after use! */
 }
-
