@@ -43,7 +43,8 @@ const wchar_t * decodeBin (const wchar_t * binStr) {
 			return wStringOut;
 		}
 	}
-
+	
+	index = 0;
 	while (index < length) {
 		num = 0;
 		int bitNo;
