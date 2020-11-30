@@ -48,7 +48,10 @@ try:
     for comment in praw.models.util.stream_generator(reddit.inbox.unread):
         if (comment.id not in posts_replied_to) and (comment.id not in posts_seen):
             author = comment.author
-            submission = comment.submission
+            try:
+                submission = comment.submission
+            except:
+                submission = None
             post_is_deleted = False
 
             if comment.body == "[deleted]" or comment.body == "[removed]":
