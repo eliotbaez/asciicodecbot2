@@ -673,7 +673,7 @@ wchar_t * decodeBase64 (const wchar_t * stringIn) {
 	int emptyBytes;
 	
 	/* trim off up to two padding characters */
-	for (buf = 0; buf < 1; buf++) { /* do twice :^) */
+	for (buf = 0; buf < 2; buf++) { /* do twice :^) */
 		if (sStringIn[length - 1] == '=') {
 			sStringIn[--length] = 0;
 		}
