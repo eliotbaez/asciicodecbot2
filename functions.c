@@ -16,7 +16,7 @@ const wchar_t * freewchar (const wchar_t * ptr) {
 
 const wchar_t * decodeBin (const wchar_t * binStr) {
 	/* allocate memory for short string */
-	char * sBinStr = (char *) malloc (wcslen (binStr) + 1);
+	char * sBinStr = (char *) malloc (MAX_COMMENT_LENGTH + 1);
 	/* convert wide input to short string */
 	size_t characters;
 	characters = wcstombs (sBinStr, binStr, MAX_COMMENT_LENGTH);
@@ -88,7 +88,7 @@ const wchar_t * decodeBin (const wchar_t * binStr) {
 
 const wchar_t * encodeBin (const wchar_t * string) {
 	/* allocate memory for short string */
-	char * sString = (char *) malloc (wcslen (string) + 1);
+	char * sString = (char *) malloc (MAX_COMMENT_LENGTH + 1);
 	/* convert wide input into short string */
 	size_t characters;
 	characters = wcstombs (sString, string, MAX_COMMENT_LENGTH);
@@ -146,7 +146,7 @@ const wchar_t * encodeBin (const wchar_t * string) {
 
 const wchar_t * decodeHex (const wchar_t * hexStr) {
 	/* allocate memory for short string */
-	char * sHexStr = (char *) malloc (wcslen (hexStr) + 1);
+	char * sHexStr = (char *) malloc (MAX_COMMENT_LENGTH + 1);
 	/* convert wide input into short string */
 	size_t characters;
 	characters = wcstombs (sHexStr, hexStr, MAX_COMMENT_LENGTH);
@@ -232,7 +232,7 @@ const wchar_t * decodeHex (const wchar_t * hexStr) {
 
 const wchar_t * encodeHex (const wchar_t * string) {
 	/* allocate memory for short string */
-	char * sString = (char *) malloc (wcslen (string) + 1);
+	char * sString = (char *) malloc (MAX_COMMENT_LENGTH + 1);
 	/* convert wide input into short string */
 	size_t characters;
 	characters = wcstombs (sString, string, MAX_COMMENT_LENGTH);
@@ -294,7 +294,7 @@ const wchar_t * encodeHex (const wchar_t * string) {
 
 wchar_t * decodeDec (const wchar_t * decStr) {
 	/* allocate memory for short string */
-	char * sDecStr = (char *) malloc (wcslen (decStr) + 1);
+	char * sDecStr = (char *) malloc (MAX_COMMENT_LENGTH + 1);
 	/* convert wide input into short string */
 	size_t characters;
 	characters = wcstombs (sDecStr, decStr, MAX_COMMENT_LENGTH);
@@ -366,7 +366,7 @@ wchar_t * decodeDec (const wchar_t * decStr) {
 
 wchar_t * encodeDec (const wchar_t * string) {
 	/* allocate memory for short string */
-	char * sString = (char *) malloc (wcslen (string) + 1);
+	char * sString = (char *) malloc (MAX_COMMENT_LENGTH + 1);
 	/* convert wide input in to short string */
 	size_t characters;
 	characters = wcstombs (sString, string, MAX_COMMENT_LENGTH);
@@ -420,7 +420,7 @@ wchar_t * encodeDec (const wchar_t * string) {
 
 wchar_t * rot5 (const wchar_t * stringIn) {
 	/* allocate memory for short string */
-	char * sStringIn = (char *) malloc (wcslen (stringIn) + 1);
+	char * sStringIn = (char *) malloc (MAX_COMMENT_LENGTH + 1);
 	/* convert wide input into short string */
 	size_t characters;
 	characters = wcstombs (sStringIn, stringIn, MAX_COMMENT_LENGTH);
@@ -459,7 +459,7 @@ wchar_t * rot5 (const wchar_t * stringIn) {
 
 wchar_t * rot13 (const wchar_t * stringIn) {
 	/* allocate memory for short string */
-	char * sStringIn = (char *) malloc (wcslen (stringIn) + 1);
+	char * sStringIn = (char *) malloc (MAX_COMMENT_LENGTH + 1);
 	/* convert wide input into short string */
 	size_t characters;
 	characters = wcstombs (sStringIn, stringIn, MAX_COMMENT_LENGTH);
@@ -502,7 +502,7 @@ wchar_t * rot13 (const wchar_t * stringIn) {
 
 wchar_t * rot47 (const wchar_t * stringIn) {
 	/* allocate memory for short string */
-	char * sStringIn = (char *) malloc (wcslen (stringIn) + 1);
+	char * sStringIn = (char *) malloc (MAX_COMMENT_LENGTH + 1);
 	/* convert wide input into short string */
 	size_t characters;
 	characters = wcstombs (sStringIn, stringIn, MAX_COMMENT_LENGTH);
@@ -541,23 +541,43 @@ wchar_t * rot47 (const wchar_t * stringIn) {
 
 wchar_t * encodeBase64 (const wchar_t * stringIn) {
 	/* allocate memory for short string */
-	char * sStringIn = (char *) malloc (wcslen (stringIn) + 1);
+	/* Short string will not necessarily be the same length as the wide string */
+	char * sStringIn = (char *) malloc (MAX_COMMENT_LENGTH + 1);
+	/* char * sStringIn = (char *) malloc (wcslen (stringIn) + 1); */
 	/* convert wide input into short string */
 	size_t characters;
 	characters = wcstombs (sStringIn, stringIn, MAX_COMMENT_LENGTH);
 	sStringIn[characters] = 0;
 	
 	char stringOut[MAX_COMMENT_LENGTH + 1];
+	wchar_t * wStringOut;
 	int outputIndex = 0;
 
 	int index = 0;
 	/* group must be at least 24 bits wide */
 	u_int32_t group = 0; 
 	char buf;
-	size_t length = strlen (sStringIn);
+	size_t length = wcslen (stringIn);
+	
+	/* check for invalid characters in wide string, abort if found */
+	for ( ; index < length; index++) {
+		if (stringIn[index] > 127) {
+			/* return error message if invalid characters are found */
+                        wStringOut = (wchar_t *) malloc (20 * sizeof (wchar_t));
+                        wcscpy (wStringOut, L"Input invalid.");
+
+                        free (sStringIn);
+                        return wStringOut;
+		}
+		
+	}
+
+	index = 0;
+	length = strlen (sStringIn);
 	/* ceiling division for integers */
 	if ((length / 3 + (length % 3 != 0)) * 4 > MAX_COMMENT_LENGTH) 
 		length = MAX_COMMENT_LENGTH / 4 * 3;
+	printf ("length adjusted to %d\n", length);
 	
 	int emptyBytes = (3 - (length % 3)) % 3;
 
@@ -618,7 +638,7 @@ wchar_t * encodeBase64 (const wchar_t * stringIn) {
 	stringOut[index] = 0;
 	
 	/* dynamically allocate memory for output string */
-	wchar_t * wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
+	wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
 	/* convert short string to wchar_t string */
 	characters = mbstowcs (wStringOut, stringOut, MAX_COMMENT_LENGTH);
 	/* terminate wide string */
@@ -634,7 +654,7 @@ wchar_t * encodeBase64 (const wchar_t * stringIn) {
 
 wchar_t * decodeBase64 (const wchar_t * stringIn) {
 	/* allocate memory for short string */
-	char * sStringIn = (char *) malloc (wcslen (stringIn) + 1);
+	char * sStringIn = (char *) malloc (MAX_COMMENT_LENGTH + 1);
 	/* convert wide input into short string */
 	size_t characters;
 	characters = wcstombs (sStringIn, stringIn, MAX_COMMENT_LENGTH);
