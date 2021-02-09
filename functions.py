@@ -19,7 +19,7 @@ cfunctions.freewchar.restype = ctypes.c_void_p
 # bin
 cfunctions.encodeBin.argtypes = [ctypes.c_wchar_p]
 cfunctions.encodeBin.restype = ctypes.c_void_p
-cfunctions.decodeBin.argtypes = [ctypes.c_wchar_p]
+cfunctions.decodeBin.argtypes = [ctypes.c_char_p]
 cfunctions.decodeBin.restype = ctypes.c_void_p
 # dec
 cfunctions.encodeDec.argtypes = [ctypes.c_wchar_p]
@@ -128,8 +128,8 @@ def encode_bin(string = ""):
 
 # binary to string
 def decode_bin(binstr = ""):
-    pstring = cfunctions.decodeBin(binstr)
-    pstring = ctypes.cast(pstring, ctypes.c_wchar_p)
-    string = pstring.value
+    pstring = cfunctions.decodeBin(bytes(binstr, "utf-8"))
+    pstring = ctypes.cast(pstring, ctypes.c_char_p)
+    string = str(pstring.value, "utf-8")
     cfunctions.freewchar(pstring)
     return string

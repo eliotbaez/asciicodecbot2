@@ -6,64 +6,54 @@
 /* Reddit maximum acceptable comment length */
 #define MAX_COMMENT_LENGTH 10000
 
-const wchar_t * freewchar (const wchar_t * ptr) {
-	free ((void *) ptr);
+void * freewchar (void * ptr) {
+	free (ptr);
 	/* return address of freed memory */
 	return ptr;
 }
 
 /* decode string of binary into a plaintext string */
 
-const wchar_t * decodeBin (const wchar_t * binStr) {
-	/* allocate memory for short string */
-	char * sBinStr = (char *) malloc (MAX_COMMENT_LENGTH + 1);
-	/* convert wide input to short string */
-	size_t characters;
-	characters = wcstombs (sBinStr, binStr, MAX_COMMENT_LENGTH);
-	sBinStr[characters] = 0;
-	
-	char stringOut[MAX_COMMENT_LENGTH + 1];
-	wchar_t * wStringOut;
+const char * decodeBin (const char * binStr) {
+	/* allocate memory for output string */
+	char * stringOut = (char *) malloc (MAX_COMMENT_LENGTH + 1);
 	
 	int index = 0;
 	int outputIndex = 0;
 	
-	int num;
-	size_t length = strlen (sBinStr);
+	char num;
+	size_t length = strlen (binStr);
 	
 	/* check that all characters are either binary or space */
 	for ( ; index < length; index++) {
-		num = sBinStr[index];
+		num = binStr[index];
 		if (!(num == '0' || num == '1' || num == ' ')) {
 			/* return error message if invalid characters are found */
-			wStringOut = (wchar_t *) malloc (20 * sizeof (wchar_t));
-			wcscpy (wStringOut, L"Input invalid.");
+			stringOut = (char *) realloc (stringOut, 20 * sizeof (char));
+			strcpy (stringOut, "Input invalid.");
 
-			free (sBinStr);
-			return wStringOut;
+			return stringOut;
 		}
 	}
 	
 	index = 0;
+	u_int8_t bitNo;
 	while (index < length) {
 		num = 0;
-		int bitNo;
 		if (index + 8 > length) {
 			break;
 		}
 		for (bitNo = 0; bitNo < 8; bitNo++) {
-			num += (128 >> bitNo) * (sBinStr[index + bitNo] - 48);
+			num += (128 >> bitNo) * (binStr[index + bitNo] - 48);
 		}
-		/* Any non-ASCII characters replaced with dot */
-		stringOut[outputIndex++] = (num & 0x80)
-			? '.'
-			: (char) num;
+
+		stringOut[outputIndex++] = num;
 		index += 8;
 		if (index + 1 >= length) {
 			break;
 		}
 
-		while (!(binStr[index] == '1' || binStr[index] == '0')) {
+		while (!(binStr[index] == '1' || binStr[index] == '0') && index < length) {
 			index += 1;
 		}
 	}
@@ -71,16 +61,7 @@ const wchar_t * decodeBin (const wchar_t * binStr) {
 	/* terminate short string */
 	stringOut[outputIndex] = 0;
 	
-	/* dynamically allocate memory for output string */
-	wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1)* sizeof (wchar_t));
-	/* convert to wchar_t string */
-	characters = mbstowcs (wStringOut, stringOut, MAX_COMMENT_LENGTH);
-	/* terminate output wide string */
-	wStringOut[characters] = 0;
-	/* free memory used for short input string */
-	free (sBinStr);
-	
-	return wStringOut;
+	return stringOut;
 	/* remember to free wStringOut after use! */
 }
 
@@ -577,7 +558,7 @@ wchar_t * encodeBase64 (const wchar_t * stringIn) {
 	/* ceiling division for integers */
 	if ((length / 3 + (length % 3 != 0)) * 4 > MAX_COMMENT_LENGTH) 
 		length = MAX_COMMENT_LENGTH / 4 * 3;
-	printf ("length adjusted to %d\n", length);
+	/* printf ("length adjusted to %d\n", length);*/
 	
 	int emptyBytes = (3 - (length % 3)) % 3;
 
