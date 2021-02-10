@@ -20,7 +20,7 @@ const char * decodeBin (const char * binStr) {
 	
 	int index;
 	int outputIndex = 0;
-	char num;
+	unsigned char num;
 	size_t length = strlen (binStr);
 	
 	/* check that all characters are either binary or space */
@@ -36,7 +36,7 @@ const char * decodeBin (const char * binStr) {
 	}
 	
 	index = 0;
-	u_int8_t bitNo;
+	char bitNo;
 	while (index + 8 <= length) {
 		num = 0;
 
@@ -64,60 +64,41 @@ const char * decodeBin (const char * binStr) {
 
 /* encode plaintext string into binary */
 
-const wchar_t * encodeBin (const wchar_t * string) {
-	/* allocate memory for short string */
-	char * sString = (char *) malloc (MAX_COMMENT_LENGTH + 1);
-	/* convert wide input into short string */
-	size_t characters;
-	characters = wcstombs (sString, string, MAX_COMMENT_LENGTH);
-	sString[characters] = 0;
-	
-	char binaryString[MAX_COMMENT_LENGTH + 1];
+const char * encodeBin (const char * string) {
+	/* allocate memory for output string */
+	char * binaryString = (char *) malloc (MAX_COMMENT_LENGTH + 1);
 	
 	int index;
 	int outputIndex = 0;
-
-	size_t length = strlen (sString);
+	unsigned char num;
+	size_t length = strlen (string);
 	
-	/*
-	 * Each character of plaintext will occupy 9 characters
-	 * when expressed in binary. 8 bits + 1 space
-	 */
+	/* Each character of plaintext will occupy 9 characters when expressed in
+	   binary; 8 bits + 1 space. Adjusting the length variable will effectively
+	   trim the length of the output string to the maximum possible length
+	   acceptable by MAX_COMMENT_LENGTH. */
 	if (length > MAX_COMMENT_LENGTH / 9) 
 		length = MAX_COMMENT_LENGTH / 9;
 
+	char bit;
 	for (index = 0; index < length; index++) {
-		char bit;
-		char i = sString[index];
+		num = string[index];
 		for (bit = 0; bit < 8; bit++) {
-			if (i & 0x80) { /* if most significant bit is 1 */
+			if (num & 0x80) /* if most significant bit is set */
 				binaryString[outputIndex++] = '1';
-			}
-			else {
+			else
 				binaryString[outputIndex++] = '0';
-			}
-			i <<= 1;
-			if (i > 0xFF) {
-				i -= 0x100;
-			}
+			num <<= 1;
 		}
+		/* append delimiter character between bytes */
 		binaryString[outputIndex++] = ' ';
 	}
 
-	/* terminate short string */
-	binaryString[outputIndex] = 0;
-	
-	/* dynamically allocate memory for output string */
-	wchar_t * wBinaryString = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
-	/* convert short string to wchar_t string */
-	characters = mbstowcs (wBinaryString, binaryString, MAX_COMMENT_LENGTH);
-	/* terminate output wide string */
-	wBinaryString[characters] = 0;
-	/* free memory used for short input string */
-	free (sString);
+	/* terminate output string */
+	binaryString[outputIndex] = '\0';
 
-	return wBinaryString;
-	/* remember to free wBinaryString after use! */
+	return binaryString;
+	/* remember to free binaryString after use! */
 }
 
 /* decode string of hexadecimal into plaintext */
@@ -128,7 +109,7 @@ const char * decodeHex (const char * hexStr) {
 
 	int index;
 	int outputIndex = 0;
-	char num;
+	unsigned char num;
 	size_t length = strlen (hexStr);
 
 	/* allocate memory for a copy of the input string:
@@ -198,64 +179,45 @@ const char * decodeHex (const char * hexStr) {
 
 /* encode plaintext string into hexadeximal */
 
-const wchar_t * encodeHex (const wchar_t * string) {
-	/* allocate memory for short string */
-	char * sString = (char *) malloc (MAX_COMMENT_LENGTH + 1);
-	/* convert wide input into short string */
-	size_t characters;
-	characters = wcstombs (sString, string, MAX_COMMENT_LENGTH);
-	sString[characters] = 0;
-	
-	char hexString[MAX_COMMENT_LENGTH  + 1];
+const char * encodeHex (const char * string) {
+	/* allocate memory for output string */
+	char * hexString = (char *) malloc (MAX_COMMENT_LENGTH + 1);
 
 	int index;
 	int outputIndex = 0;
-	size_t length = strlen (sString);
-	
-	/*
-	 * Each character of plaintext will occupy 3 characters
-	 * when expressed in hexadecimal. 2 digits + 1 space
-	 */
+	size_t length = strlen (string);
+
+	/* Each character of plaintext will occupy 3 characters when expressed in
+	   hexadecimal; 2 digits + 1 space. Adjusting the length variable will
+	   effectively trim the length of the output string to the maximum possible
+	   length acceptable by MAX_COMMENT_LENGTH. */
 	if (length > MAX_COMMENT_LENGTH / 3)
 		length = MAX_COMMENT_LENGTH / 3;
 	
-	int i, j;
+	unsigned char i, j; 
 	for (index = 0; index < length; index++) {
-		i = sString[index];
+		i = string[index];
 		j = i - (i % 16);
-		j /= 16; /* j now represents the first hex digit */
+		j >>= 4; /* j now represents the first hex digit */
 		if (j < 10)
-			hexString[outputIndex++] = j + 48;
-		else if (j < 16)
-			hexString[outputIndex++] = j + 55;
-		else
-			hexString[outputIndex++] = '0';
+			hexString[outputIndex++] = j + 48; /* 48 is the offset from '0' to 0 */
+		else /* j will always be less than 16 at this point */
+			hexString[outputIndex++] = j + 55; /* 55 is the offset from 'A' to 10 */
 		
-		i -= j * 16; /* i represents the second hex digit */
+		i &= 0xF; /* i now represents the second hex digit */
 		if (i < 10)
 			hexString[outputIndex++] = i + 48;
-		else if (i < 16)
+		else /* i will always be less than 16 at this point */
 			hexString[outputIndex++] = i + 55;
-		else
-			hexString[outputIndex++] = '0';
 
 		hexString[outputIndex++] = ' ';
 	}
 
-	/* terminate short string */
-	hexString[outputIndex] = 0;
+	/* terminate output string */
+	hexString[outputIndex] = '\0';
 
-	/* dynamically allocate memory for output string */
-	wchar_t * wHexString = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
-	/* convert short string to wchar_t string */
-	characters = mbstowcs (wHexString, hexString, MAX_COMMENT_LENGTH);
-	/* terminate wide string */
-	wHexString[characters] = 0;
-	/* free memory used for short input string */
-	free (sString);
-
-	return wHexString;
-	/* remember to free wHexString after use! */
+	return hexString;
+	/* remember to free hexString after use! */
 }
 
 /* decode decimal string into plaintext */

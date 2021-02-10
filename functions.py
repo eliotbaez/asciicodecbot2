@@ -17,7 +17,7 @@ cfunctions = ctypes.cdll.LoadLibrary("./cfunctions.so")
 cfunctions.freewchar.argtypes = [ctypes.c_void_p]
 cfunctions.freewchar.restype = ctypes.c_void_p
 # bin
-cfunctions.encodeBin.argtypes = [ctypes.c_wchar_p]
+cfunctions.encodeBin.argtypes = [ctypes.c_char_p]
 cfunctions.encodeBin.restype = ctypes.c_void_p
 cfunctions.decodeBin.argtypes = [ctypes.c_char_p]
 cfunctions.decodeBin.restype = ctypes.c_void_p
@@ -27,7 +27,7 @@ cfunctions.encodeDec.restype = ctypes.c_void_p
 cfunctions.decodeDec.argtypes = [ctypes.c_wchar_p]
 cfunctions.decodeDec.restype = ctypes.c_void_p
 # hex
-cfunctions.encodeHex.argtypes = [ctypes.c_wchar_p]
+cfunctions.encodeHex.argtypes = [ctypes.c_char_p]
 cfunctions.encodeHex.restype = ctypes.c_void_p
 cfunctions.decodeHex.argtypes = [ctypes.c_char_p]
 cfunctions.decodeHex.restype = ctypes.c_void_p
@@ -104,9 +104,9 @@ def decode_dec(decstr = ""):
 
 # string to hex
 def encode_hex(string = ""):
-    phexstr = cfunctions.encodeHex(string)
-    phexstr = ctypes.cast(phexstr, ctypes.c_wchar_p)
-    hexstr = phexstr.value
+    phexstr = cfunctions.encodeHex(bytes(string, "utf-8"))
+    phexstr = ctypes.cast(phexstr, ctypes.c_char_p)
+    hexstr = str(phexstr.value, "utf-8")
     cfunctions.freewchar(phexstr)
     return hexstr
 
@@ -114,15 +114,15 @@ def encode_hex(string = ""):
 def decode_hex(hexstr = ""):
     pstring = cfunctions.decodeHex(bytes(hexstr, "utf-8"))
     pstring = ctypes.cast(pstring, ctypes.c_char_p)
-    string = str(pstring.value, "utf-8")
+    string = str(pstring.value, "utf-8", "replace")
     cfunctions.freewchar(pstring)
     return string
 
 # string to binary
 def encode_bin(string = ""):
-    pbinstr = cfunctions.encodeBin(string)
-    pbinstr = ctypes.cast(pbinstr, ctypes.c_wchar_p)
-    binstr = pbinstr.value
+    pbinstr = cfunctions.encodeBin(bytes(string, "utf-8"))
+    pbinstr = ctypes.cast(pbinstr, ctypes.c_char_p)
+    binstr = str(pbinstr.value, "utf-8")
     cfunctions.freewchar(pbinstr)
     return binstr
 
@@ -130,6 +130,6 @@ def encode_bin(string = ""):
 def decode_bin(binstr = ""):
     pstring = cfunctions.decodeBin(bytes(binstr, "utf-8"))
     pstring = ctypes.cast(pstring, ctypes.c_char_p)
-    string = str(pstring.value, "utf-8")
+    string = str(pstring.value, "utf-8", "replace")
     cfunctions.freewchar(pstring)
     return string
