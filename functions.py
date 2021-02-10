@@ -6,6 +6,9 @@
 # functions as they become available. This will help to declutter the
 # main script.
 
+# TODO
+# include "replace" as the third argument to str() in all the decode functions
+
 import ctypes
 
 cfunctions = ctypes.cdll.LoadLibrary("./cfunctions.so")
@@ -22,9 +25,9 @@ cfunctions.encodeBin.restype = ctypes.c_void_p
 cfunctions.decodeBin.argtypes = [ctypes.c_char_p]
 cfunctions.decodeBin.restype = ctypes.c_void_p
 # dec
-cfunctions.encodeDec.argtypes = [ctypes.c_wchar_p]
+cfunctions.encodeDec.argtypes = [ctypes.c_char_p]
 cfunctions.encodeDec.restype = ctypes.c_void_p
-cfunctions.decodeDec.argtypes = [ctypes.c_wchar_p]
+cfunctions.decodeDec.argtypes = [ctypes.c_char_p]
 cfunctions.decodeDec.restype = ctypes.c_void_p
 # hex
 cfunctions.encodeHex.argtypes = [ctypes.c_char_p]
@@ -88,17 +91,17 @@ def rot47(string_in = ""):
     
 # string to decimal
 def encode_dec(string = ""):
-    pdecstr = cfunctions.encodeDec(string)
-    pdecstr = ctypes.cast(pdecstr, ctypes.c_wchar_p)
-    decstr = pdecstr.value
+    pdecstr = cfunctions.encodeDec(bytes(string, "utf-8"))
+    pdecstr = ctypes.cast(pdecstr, ctypes.c_char_p)
+    decstr = str(pdecstr.value, "utf-8")
     cfunctions.freewchar(pdecstr)
     return decstr
 
 # decimal to string
 def decode_dec(decstr = ""):
-    pstring = cfunctions.decodeDec(decstr)
-    pstring = ctypes.cast(pstring, ctypes.c_wchar_p)
-    string = pstring.value
+    pstring = cfunctions.decodeDec(bytes(decstr, "utf-8"))
+    pstring = ctypes.cast(pstring, ctypes.c_char_p)
+    string = str(pstring.value, "utf-8", "replace")
     cfunctions.freewchar(pstring)
     return string
 

@@ -13,7 +13,6 @@ void * freewchar (void * ptr) {
 }
 
 /* decode string of binary into a plaintext string */
-
 const char * decodeBin (const char * binStr) {
 	/* allocate memory for output string */
 	char * stringOut = (char *) malloc (MAX_COMMENT_LENGTH + 1);
@@ -63,7 +62,6 @@ const char * decodeBin (const char * binStr) {
 }
 
 /* encode plaintext string into binary */
-
 const char * encodeBin (const char * string) {
 	/* allocate memory for output string */
 	char * binaryString = (char *) malloc (MAX_COMMENT_LENGTH + 1);
@@ -102,7 +100,6 @@ const char * encodeBin (const char * string) {
 }
 
 /* decode string of hexadecimal into plaintext */
-
 const char * decodeHex (const char * hexStr) {
 	/* allocate memory for output string */
 	char * stringOut = (char *) malloc (MAX_COMMENT_LENGTH + 1);
@@ -178,7 +175,6 @@ const char * decodeHex (const char * hexStr) {
 }
 
 /* encode plaintext string into hexadeximal */
-
 const char * encodeHex (const char * string) {
 	/* allocate memory for output string */
 	char * hexString = (char *) malloc (MAX_COMMENT_LENGTH + 1);
@@ -221,133 +217,106 @@ const char * encodeHex (const char * string) {
 }
 
 /* decode decimal string into plaintext */
+const char * decodeDec (const char * decStr) {
+	/* allocate memory for output string */
+	char * stringOut = (char *) malloc (MAX_COMMENT_LENGTH + 1);
 
-wchar_t * decodeDec (const wchar_t * decStr) {
-	/* allocate memory for short string */
-	char * sDecStr = (char *) malloc (MAX_COMMENT_LENGTH + 1);
-	/* convert wide input into short string */
-	size_t characters;
-	characters = wcstombs (sDecStr, decStr, MAX_COMMENT_LENGTH);
-	sDecStr[characters] = 0;
-
-	char stringOut[MAX_COMMENT_LENGTH + 1];
-	wchar_t * wStringOut;
-
-	int index = 0;
+	int index;
 	int outputIndex = 0;
-	size_t length = strlen (sDecStr);
-	int buf = 0;
+	size_t length = strlen (decStr);
+	/* maximum value of buf is 4294967265
+	   Any number string contained in decStr up to 4294967296 will yield that
+	   number % 256. Any number larger than this will yield undefined behavior. */
+	u_int32_t buf = 0;
 
 	/* check that all characters are decimal or space */
-	for ( ; index < length; index++) {
-		buf = sDecStr[index];
+	for (index = 0; index < length; index++) {
+		buf = decStr[index];
 		if (!(('0' <= buf && buf <= '9') || buf == ' ')) {
 			/* return error message if invalid characters are found */
-                        wStringOut = (wchar_t *) malloc (20 * sizeof (wchar_t));
-                        wcscpy (wStringOut, L"Input invalid.");
+			stringOut = (char *) realloc (stringOut, 20 * sizeof (char));
+			strcpy (stringOut, "Input invalid.");
 
-                        free (sDecStr);
-                        return wStringOut;
+			return stringOut;
 		}
 	}
 
+	/* skip past any leading spaces */
 	index = 0;
+	while (index < length) {
+		if (decStr[index] != ' ')
+			break;
+		index++;
+	}
+
 	buf = 0;
 	while (index < length) {
-		if (sDecStr[index] == ' ') {
-			/* non-ASCII characters replaced with dot */
-			stringOut[outputIndex++] = (buf & 0x80)
-				? '.'
-				: (char) buf;
-			buf = 0;
-			index++;
-			continue;
-		}
-		if ('0' <= sDecStr[index] && sDecStr[index] <= '9') {
+		/* for every consecutive decimal digit read, the buffer is multiplied
+		   by 10 to account for the new digit. */
+		if ('0' <= decStr[index] && decStr[index] <= '9') {
 			buf *= 10;
-			buf += sDecStr[index] - 48;
+			buf += decStr[index] - 48;
+			index++;
+		}
+		/* when a delimiter is encountered, write the buffer to stringOut and
+		   reset the buffer to 0 */
+		if (decStr[index] == ' ') {
+			stringOut[outputIndex++] = (char) buf;
+			buf = 0;
 			index++;
 		}
 	}
 	if (buf) { /* if buf not equal to 0 */
-		/* non-ASCII characters replaced with dot */
-		stringOut[outputIndex++] = (buf & 0x80)
-			? '.'
-			:(char) buf;
+		stringOut[outputIndex++] = (char) buf;
 	}
 
 	/* terminate short string */
-	stringOut[outputIndex] = 0;
+	stringOut[outputIndex] = '\0';
 
-	/* dynamically allocate memory for output string */
-	wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
-	/* convert short string to wchar_t string */
-	characters = mbstowcs (wStringOut, stringOut, MAX_COMMENT_LENGTH);
-	/* terminate wide string */
-	wStringOut[characters] = 0;
-	/* free memory used for short input string */
-	free (sDecStr);
-
-	return wStringOut;
-	/* remember to free wStringOut after use! */
+	return stringOut;
+	/* remember to free stringOut after use! */
 }
 
 /* encode plaintext into decimal string */
+const char * encodeDec (const unsigned char * string) {
+	/* string is declared as const unsigned char* instead of const char*
+	   because we require the characters to be expressed as solely positive
+	   values in order for the math in this function to work. */
 
-wchar_t * encodeDec (const wchar_t * string) {
-	/* allocate memory for short string */
-	char * sString = (char *) malloc (MAX_COMMENT_LENGTH + 1);
-	/* convert wide input in to short string */
-	size_t characters;
-	characters = wcstombs (sString, string, MAX_COMMENT_LENGTH);
-	sString[characters] = 0;
+	/* Each character of plaintext will occupy at most 4 characters expressed
+	   in decimal; 3 digits + 1 space. We won't adjust the length variable
+	   here, because we can't practically predict how many digits each
+	   character will occupy. Instead, we will allocate enough memory to store
+	   MAX_COMMENT_LENGTH number of characters, each occupying 3 digits and a
+	   space. We will trim this long string afterward if necessary. */
+	char * decimalString = malloc (MAX_COMMENT_LENGTH * 4 + 1);
 	
-	/* 
-	 * Every character of plaintext will occupy at most 4 characters
-	 * expressed in decimal (3 decimal digits + 1 space).
-	 */
-	char decimalString[MAX_COMMENT_LENGTH * 4 + 1];
-	
-	int index = 0;
+	int index;
 	int outputIndex = 0;
-	size_t length = strlen (sString);
+	size_t length = strlen (string);
 
-	while (index < length) {
-		/* is this if statement even necessary? chars can't go above 255 */
-		if (0 <= sString[index] && sString[index] < 256) {
-			if (sString[index] > 99) {/* if there is a significant digit in the hundreds place */
-				/* append hundreds digit */
-				decimalString[outputIndex++] = sString[index] / 100 + 48;
-				/* append tens digit */
-				decimalString[outputIndex++] = ((sString[index] % 100) - (sString[index] % 10)) / 10 + 48;
-			}
-			else if ((sString[index] % 100) - (sString[index] % 10) > 0) /* significant tens digit but no hundreds */
-				decimalString[outputIndex++] = ((sString[index] % 100) - (sString[index] % 10)) /10 + 48;
-			/* ones digit will always be appended */
-			decimalString[outputIndex++] = (sString[index] % 10) + 48;
-			decimalString[outputIndex++] = ' ';
+	for (index = 0; index < length; index++) {
+		if (string[index] > 99) { /* if there is a significant digit in the hundreds place */
+			/* append hundreds digit */
+			decimalString[outputIndex++] = string[index] / 100 + 48;
+			/* append tens digit */
+			decimalString[outputIndex++] = ((string[index] % 100) - (string[index] % 10)) / 10 + 48;
 		}
-		index++;
+		else if ((string[index] % 100) - (string[index] % 10) > 0) /* significant tens digit but no hundreds */
+			decimalString[outputIndex++] = ((string[index] % 100) - (string[index] % 10)) /10 + 48;
+		/* ones digit will always be appended */
+		decimalString[outputIndex++] = (string[index] % 10) + 48;
+		decimalString[outputIndex++] = ' ';
 	}
 
-	/* terminate short string */
-	decimalString[outputIndex] = 0;
+	/* terminate output string */
+	decimalString[outputIndex] = '\0';
 
-	/* dynamically allocate memory for output string */
-	wchar_t * wDecimalString = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
-	/* convert short string to wchar_t string */
-	characters = mbstowcs (wDecimalString, decimalString, MAX_COMMENT_LENGTH);
-	/* terminate wide string */
-	wDecimalString[characters] = 0;
-	/* free memory used for short input string */
-	free (sString);
-
-	return wDecimalString;
-	/* remember to free wDecimalString after use! */
+	return decimalString;
+	/* remember to free decimalString after use! */
 }
 
 /* ROT5 cipher */
-
 wchar_t * rot5 (const wchar_t * stringIn) {
 	/* allocate memory for short string */
 	char * sStringIn = (char *) malloc (MAX_COMMENT_LENGTH + 1);
@@ -386,7 +355,6 @@ wchar_t * rot5 (const wchar_t * stringIn) {
 }
 
 /* ROT13 cipher */
-
 wchar_t * rot13 (const wchar_t * stringIn) {
 	/* allocate memory for short string */
 	char * sStringIn = (char *) malloc (MAX_COMMENT_LENGTH + 1);
@@ -429,7 +397,6 @@ wchar_t * rot13 (const wchar_t * stringIn) {
 }
 
 /* ROT47 cipher */
-
 wchar_t * rot47 (const wchar_t * stringIn) {
 	/* allocate memory for short string */
 	char * sStringIn = (char *) malloc (MAX_COMMENT_LENGTH + 1);
@@ -468,7 +435,6 @@ wchar_t * rot47 (const wchar_t * stringIn) {
 }
 
 /* plaintext string to base64 */
-
 wchar_t * encodeBase64 (const wchar_t * stringIn) {
 	/* allocate memory for short string */
 	/* Short string will not necessarily be the same length as the wide string */
@@ -581,7 +547,6 @@ wchar_t * encodeBase64 (const wchar_t * stringIn) {
 }
 
 /* base64 to plaintext */
-
 wchar_t * decodeBase64 (const wchar_t * stringIn) {
 	/* allocate memory for short string */
 	char * sStringIn = (char *) malloc (MAX_COMMENT_LENGTH + 1);
