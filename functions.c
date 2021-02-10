@@ -3,6 +3,12 @@
 #include <wchar.h>
 #include <stdio.h>
 
+/* TODO:
+   Remove maximum output length and instead always allocate enough memory to
+   complete the string conversion. Since UTF-8 text uses variable-width
+   characters, it makes the most sense to let these functions perform their
+   conversions completely, then truncate the strings in the python script.
+   This applies to all functions. */
 /* Reddit maximum acceptable comment length */
 #define MAX_COMMENT_LENGTH 10000
 
@@ -14,13 +20,16 @@ void * freewchar (void * ptr) {
 
 /* decode string of binary into a plaintext string */
 const char * decodeBin (const char * binStr) {
-	/* allocate memory for output string */
-	char * stringOut = (char *) malloc (MAX_COMMENT_LENGTH + 1);
-	
 	int index;
 	int outputIndex = 0;
 	unsigned char num;
 	size_t length = strlen (binStr);
+
+	/* allocate enough memory for output string:
+	   8 is the minimum number of bits/spaces that can be used to display a
+	   single character, so we divide the length by 8 to find the maximum
+	   length of the output string. Add 1 to accommodate the null terminator. */
+	char * stringOut = (char *) malloc (length / 8 + 1);
 	
 	/* check that all characters are either binary or space */
 	for (index = 0 ; index < length; index++) {
@@ -63,20 +72,16 @@ const char * decodeBin (const char * binStr) {
 
 /* encode plaintext string into binary */
 const char * encodeBin (const char * string) {
-	/* allocate memory for output string */
-	char * binaryString = (char *) malloc (MAX_COMMENT_LENGTH + 1);
-	
 	int index;
 	int outputIndex = 0;
 	unsigned char num;
 	size_t length = strlen (string);
 	
-	/* Each character of plaintext will occupy 9 characters when expressed in
-	   binary; 8 bits + 1 space. Adjusting the length variable will effectively
-	   trim the length of the output string to the maximum possible length
-	   acceptable by MAX_COMMENT_LENGTH. */
-	if (length > MAX_COMMENT_LENGTH / 9) 
-		length = MAX_COMMENT_LENGTH / 9;
+	/* allocate enough memory for output string:
+	   9 is the maximum number of bits/spaces that can be used to display a
+	   single character, so we multiply the length by 9 to find the maximum
+	   length of the output string. Add 1 to accommodate the null terminator. */
+	char * binaryString = (char *) malloc (9 * length + 1);
 
 	char bit;
 	for (index = 0; index < length; index++) {
@@ -101,13 +106,16 @@ const char * encodeBin (const char * string) {
 
 /* decode string of hexadecimal into plaintext */
 const char * decodeHex (const char * hexStr) {
-	/* allocate memory for output string */
-	char * stringOut = (char *) malloc (MAX_COMMENT_LENGTH + 1);
-
 	int index;
 	int outputIndex = 0;
 	unsigned char num;
 	size_t length = strlen (hexStr);
+
+	/* allocate enough memory for output string:
+	   2 is the minimum number of hex digits that can be used to display a
+	   single character, so we divide the length by 2 to find the maximum
+	   length of the output string. Add 1 to accommodate the null terminator. */
+	char * stringOut = (char *) malloc (length / 2 + 1);
 
 	/* allocate memory for a copy of the input string:
 	   This string will be a copy of hexStr, but with all alphabets
@@ -142,6 +150,8 @@ const char * decodeHex (const char * hexStr) {
 		}
 	}
 
+	/* TODO:
+	   skip past leading spaces to avoid decoding errors */
 	index = 0;
 	while (length - index >= 2) {
 		num = 0;
@@ -176,19 +186,15 @@ const char * decodeHex (const char * hexStr) {
 
 /* encode plaintext string into hexadeximal */
 const char * encodeHex (const char * string) {
-	/* allocate memory for output string */
-	char * hexString = (char *) malloc (MAX_COMMENT_LENGTH + 1);
-
 	int index;
 	int outputIndex = 0;
 	size_t length = strlen (string);
 
-	/* Each character of plaintext will occupy 3 characters when expressed in
-	   hexadecimal; 2 digits + 1 space. Adjusting the length variable will
-	   effectively trim the length of the output string to the maximum possible
-	   length acceptable by MAX_COMMENT_LENGTH. */
-	if (length > MAX_COMMENT_LENGTH / 3)
-		length = MAX_COMMENT_LENGTH / 3;
+	/* allocate enough memory for output string:
+	   3 is the maximum number of digits/spaces that can be used to display a
+	   single character, so we multiply the length by 3 to find the maximum
+	   length of the output string. Add 1 to accommodate the null terminator. */
+	char * hexString = (char *) malloc (3 * length + 1);
 	
 	unsigned char i, j; 
 	for (index = 0; index < length; index++) {
@@ -218,9 +224,6 @@ const char * encodeHex (const char * string) {
 
 /* decode decimal string into plaintext */
 const char * decodeDec (const char * decStr) {
-	/* allocate memory for output string */
-	char * stringOut = (char *) malloc (MAX_COMMENT_LENGTH + 1);
-
 	int index;
 	int outputIndex = 0;
 	size_t length = strlen (decStr);
@@ -228,6 +231,13 @@ const char * decodeDec (const char * decStr) {
 	   Any number string contained in decStr up to 4294967296 will yield that
 	   number % 256. Any number larger than this will yield undefined behavior. */
 	u_int32_t buf = 0;
+
+	/* allocate enough memory for output string:
+	   2 is the minimum number of decimal digits and spaces that can be used
+	   to display a single character, so we divide the length by 2 to find the
+	   maximum length of the output string. Add 1 to accommodate the null
+	   terminator. */
+	char * stringOut = (char *) malloc (length / 2 + 1);
 
 	/* check that all characters are decimal or space */
 	for (index = 0; index < length; index++) {
@@ -282,18 +292,16 @@ const char * encodeDec (const unsigned char * string) {
 	/* string is declared as const unsigned char* instead of const char*
 	   because we require the characters to be expressed as solely positive
 	   values in order for the math in this function to work. */
-
-	/* Each character of plaintext will occupy at most 4 characters expressed
-	   in decimal; 3 digits + 1 space. We won't adjust the length variable
-	   here, because we can't practically predict how many digits each
-	   character will occupy. Instead, we will allocate enough memory to store
-	   MAX_COMMENT_LENGTH number of characters, each occupying 3 digits and a
-	   space. We will trim this long string afterward if necessary. */
-	char * decimalString = malloc (MAX_COMMENT_LENGTH * 4 + 1);
 	
 	int index;
 	int outputIndex = 0;
 	size_t length = strlen (string);
+
+	/* allocate enough memory for output string:
+	   4 is the maximum number of digits/spaces that can be used to display a
+	   single character, so we multiply the length by 4 to find the maximum
+	   length of the output string. Add 1 to accommodate the null terminator. */
+	char * decimalString = malloc (4 * length + 1);
 
 	for (index = 0; index < length; index++) {
 		if (string[index] > 99) { /* if there is a significant digit in the hundreds place */
