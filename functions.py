@@ -8,6 +8,8 @@
 
 # TODO
 # include "replace" as the third argument to str() in all the decode functions
+# TODO
+# truncate strings to 10,000 characters to comply with reddit comment limits
 
 import ctypes
 
@@ -93,7 +95,8 @@ def rot47(string_in = ""):
 def encode_dec(string = ""):
     pdecstr = cfunctions.encodeDec(bytes(string, "utf-8"))
     pdecstr = ctypes.cast(pdecstr, ctypes.c_char_p)
-    decstr = str(pdecstr.value, "utf-8")
+    # decode UTF-8 and trim to max comment length
+    decstr = str(pdecstr.value, "utf-8")[:10000]
     cfunctions.freewchar(pdecstr)
     return decstr
 
@@ -101,7 +104,8 @@ def encode_dec(string = ""):
 def decode_dec(decstr = ""):
     pstring = cfunctions.decodeDec(bytes(decstr, "utf-8"))
     pstring = ctypes.cast(pstring, ctypes.c_char_p)
-    string = str(pstring.value, "utf-8", "replace")
+    # decode UTF-8 and trim to max comment length
+    string = str(pstring.value, "utf-8", "replace")[:10000]
     cfunctions.freewchar(pstring)
     return string
 
@@ -109,7 +113,8 @@ def decode_dec(decstr = ""):
 def encode_hex(string = ""):
     phexstr = cfunctions.encodeHex(bytes(string, "utf-8"))
     phexstr = ctypes.cast(phexstr, ctypes.c_char_p)
-    hexstr = str(phexstr.value, "utf-8")
+    # decode UTF-8 and trim to max comment length
+    hexstr = str(phexstr.value, "utf-8")[:10000]
     cfunctions.freewchar(phexstr)
     return hexstr
 
@@ -117,7 +122,8 @@ def encode_hex(string = ""):
 def decode_hex(hexstr = ""):
     pstring = cfunctions.decodeHex(bytes(hexstr, "utf-8"))
     pstring = ctypes.cast(pstring, ctypes.c_char_p)
-    string = str(pstring.value, "utf-8", "replace")
+    # decode UTF-8 and trim to max comment length
+    string = str(pstring.value, "utf-8", "replace")[:10000]
     cfunctions.freewchar(pstring)
     return string
 
@@ -125,7 +131,8 @@ def decode_hex(hexstr = ""):
 def encode_bin(string = ""):
     pbinstr = cfunctions.encodeBin(bytes(string, "utf-8"))
     pbinstr = ctypes.cast(pbinstr, ctypes.c_char_p)
-    binstr = str(pbinstr.value, "utf-8")
+    # decode UTF-8 and trim to max comment length
+    binstr = str(pbinstr.value, "utf-8")[:10000]
     cfunctions.freewchar(pbinstr)
     return binstr
 
@@ -133,6 +140,7 @@ def encode_bin(string = ""):
 def decode_bin(binstr = ""):
     pstring = cfunctions.decodeBin(bytes(binstr, "utf-8"))
     pstring = ctypes.cast(pstring, ctypes.c_char_p)
-    string = str(pstring.value, "utf-8", "replace")
+    string = str(pstring.value, "utf-8", "replace")[:10000]
+    # decode UTF-8 and trim to max comment length
     cfunctions.freewchar(pstring)
     return string
