@@ -29,7 +29,7 @@ cfunctions.decodeDec.restype = ctypes.c_void_p
 # hex
 cfunctions.encodeHex.argtypes = [ctypes.c_wchar_p]
 cfunctions.encodeHex.restype = ctypes.c_void_p
-cfunctions.decodeHex.argtypes = [ctypes.c_wchar_p]
+cfunctions.decodeHex.argtypes = [ctypes.c_char_p]
 cfunctions.decodeHex.restype = ctypes.c_void_p
 # rot5
 cfunctions.rot5.argtypes = [ctypes.c_wchar_p]
@@ -112,9 +112,9 @@ def encode_hex(string = ""):
 
 # hex to string
 def decode_hex(hexstr = ""):
-    pstring = cfunctions.decodeHex(hexstr)
-    pstring = ctypes.cast(pstring, ctypes.c_wchar_p)
-    string = pstring.value
+    pstring = cfunctions.decodeHex(bytes(hexstr, "utf-8"))
+    pstring = ctypes.cast(pstring, ctypes.c_char_p)
+    string = str(pstring.value, "utf-8")
     cfunctions.freewchar(pstring)
     return string
 

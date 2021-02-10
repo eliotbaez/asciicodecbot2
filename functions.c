@@ -18,14 +18,13 @@ const char * decodeBin (const char * binStr) {
 	/* allocate memory for output string */
 	char * stringOut = (char *) malloc (MAX_COMMENT_LENGTH + 1);
 	
-	int index = 0;
+	int index;
 	int outputIndex = 0;
-	
 	char num;
 	size_t length = strlen (binStr);
 	
 	/* check that all characters are either binary or space */
-	for ( ; index < length; index++) {
+	for (index = 0 ; index < length; index++) {
 		num = binStr[index];
 		if (!(num == '0' || num == '1' || num == ' ')) {
 			/* return error message if invalid characters are found */
@@ -38,11 +37,9 @@ const char * decodeBin (const char * binStr) {
 	
 	index = 0;
 	u_int8_t bitNo;
-	while (index < length) {
+	while (index + 8 <= length) {
 		num = 0;
-		if (index + 8 > length) {
-			break;
-		}
+
 		for (bitNo = 0; bitNo < 8; bitNo++) {
 			num += (128 >> bitNo) * (binStr[index + bitNo] - 48);
 		}
@@ -54,15 +51,15 @@ const char * decodeBin (const char * binStr) {
 		}
 
 		while (!(binStr[index] == '1' || binStr[index] == '0') && index < length) {
-			index += 1;
+			index++;
 		}
 	}
 
-	/* terminate short string */
-	stringOut[outputIndex] = 0;
+	/* terminate output string */
+	stringOut[outputIndex] = '\0';
 	
 	return stringOut;
-	/* remember to free wStringOut after use! */
+	/* remember to free stringOut after use! */
 }
 
 /* encode plaintext string into binary */
@@ -125,44 +122,45 @@ const wchar_t * encodeBin (const wchar_t * string) {
 
 /* decode string of hexadecimal into plaintext */
 
-const wchar_t * decodeHex (const wchar_t * hexStr) {
-	/* allocate memory for short string */
-	char * sHexStr = (char *) malloc (MAX_COMMENT_LENGTH + 1);
-	/* convert wide input into short string */
-	size_t characters;
-	characters = wcstombs (sHexStr, hexStr, MAX_COMMENT_LENGTH);
-	sHexStr[characters] = 0;
+const char * decodeHex (const char * hexStr) {
+	/* allocate memory for output string */
+	char * stringOut = (char *) malloc (MAX_COMMENT_LENGTH + 1);
 
-	char stringOut[MAX_COMMENT_LENGTH + 1];
-	wchar_t * wStringOut;
-
-	int index = 0;
+	int index;
 	int outputIndex = 0;
-	int num;
-	size_t length = strlen (sHexStr);
+	char num;
+	size_t length = strlen (hexStr);
+
+	/* allocate memory for a copy of the input string:
+	   This string will be a copy of hexStr, but with all alphabets
+	   capitalized. We use a new string instead of hexStr, so that none
+	   of the bytes in hexStr are overwritten, in case decodeHex() is
+	   called with a pointer to a constant. */
+	char * hexStrCaps = (char *) malloc ((length + 1) * sizeof (char));
+		
+	/* convert all lowercase to capital, while copying to the new string */
+	for (index = 0; index < length; index++) {
+		num = hexStr[index];
+		hexStrCaps[index] = (96 <= num && num <= 123)
+			? num - 32
+			: num;
+	}
+	/* terminate new string */
+	hexStrCaps[index] = '\0';
 	
 	/* check that all characters are valid hexadecimal or space */
-	for ( ; index < length; index++) {
-		num = sHexStr[index];
+	for (index = 0; index < length; index++) {
+		num = hexStrCaps[index];
 		if (!(
 					('0' <= num && num <= '9')
-					|| ('a' <= num && num <= 'f')
 					|| ('A' <= num && num <= 'F')
 					|| num == ' ')) {
 			/* return error message if invalid characters are found */
-                        wStringOut = (wchar_t *) malloc (20 * sizeof (wchar_t));
-                        wcscpy (wStringOut, L"Input invalid.");
-
-                        free (sHexStr);
-                        return wStringOut;
-		}
-	}
-	
-	/* convert all lowercase to capital */
-	for (index = 0; index < length; index++) {
-		num = sHexStr[index];
-		if ('a' <= num && num <= 'f') {
-			sHexStr[index] = num - 32;
+			stringOut = (char *) realloc (stringOut, 20 * sizeof (char));
+			strcpy (stringOut, "Input invalid.");
+			free (hexStrCaps);
+			
+			return stringOut;
 		}
 	}
 
@@ -170,43 +168,32 @@ const wchar_t * decodeHex (const wchar_t * hexStr) {
 	while (length - index >= 2) {
 		num = 0;
 
-		if ('0' <= sHexStr[index] && sHexStr[index] <= '9')
-			num += (sHexStr[index] - 48) * 16;
-		else if ('A' <= sHexStr[index] && sHexStr[index] <= 'F')
-			num += (sHexStr[index] - 55) * 16;
+		if ('0' <= hexStrCaps[index] && hexStrCaps[index] <= '9')
+			num += (hexStrCaps[index] - 48) * 16;
+		else if ('A' <= hexStrCaps[index] && hexStrCaps[index] <= 'F')
+			num += (hexStrCaps[index] - 55) * 16;
 		index++;
 		
-		if ('0' <= sHexStr[index] && sHexStr[index] <= '9')
-			num += (sHexStr[index] - 48);
-		else if ('A' <= sHexStr[index] && sHexStr[index] <= 'F')
-			num += (sHexStr[index] - 55);
+		if ('0' <= hexStrCaps[index] && hexStrCaps[index] <= '9')
+			num += (hexStrCaps[index] - 48);
+		else if ('A' <= hexStrCaps[index] && hexStrCaps[index] <= 'F')
+			num += (hexStrCaps[index] - 55);
 		index++;
 		
-		/* non-ASCII characters replaced with dot */
-		stringOut[outputIndex++] = (num & 0x80)
-			? '.'
-			:(char) num;
+		stringOut[outputIndex++] = num;
 
-		if (index > length)
-			break;
-		if (sHexStr[index] == ' ')
-			index += 1;
+		if (hexStrCaps[index] == ' ')
+			index++;
 	}
 
-	/* terminate short string */
-	stringOut[outputIndex] = 0;
+	/* terminate output string */
+	stringOut[outputIndex] = '\0';
 
-	/* dynamically allocate memory for output string */
-	wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
-	/* convert short string to wchar_t string */
-	characters = mbstowcs (wStringOut, stringOut, MAX_COMMENT_LENGTH);
-	/* terminate wide string */
-	wStringOut[characters] = 0;
-	/* free memory used for short input string */
-	free (sHexStr);
+	/* free memory used for capitalized input string */
+	free (hexStrCaps);
 
-	return wStringOut;
-	/* remember to free wStringOut after use! */
+	return stringOut;
+	/* remember to free stringOut after use! */
 }
 
 /* encode plaintext string into hexadeximal */
