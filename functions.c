@@ -80,7 +80,7 @@ const char * decodeBin (const char * binStr) {
 }
 
 /* encode plaintext string into binary */
-const char * encodeBin (const char * string) {
+char * encodeBin (const char * string) {
 	int index;
 	int outputIndex = 0;
 	unsigned char num;
@@ -96,10 +96,10 @@ const char * encodeBin (const char * string) {
 	for (index = 0; index < length; index++) {
 		num = string[index];
 		for (bit = 0; bit < 8; bit++) {
-			if (num & 0x80) /* if most significant bit is set */
-				binaryString[outputIndex++] = '1';
-			else
-				binaryString[outputIndex++] = '0';
+			/* if most significant bit is set */
+			binaryString[outputIndex++] = (num & 0x80)
+				? '1'
+				: '0';
 			num <<= 1;
 		}
 		/* append delimiter character between bytes */
