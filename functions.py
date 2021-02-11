@@ -48,7 +48,7 @@ cfunctions.rot47.restype = ctypes.c_void_p
 # base64
 cfunctions.encodeBase64.argtypes = [ctypes.c_char_p]
 cfunctions.encodeBase64.restype = ctypes.c_void_p
-cfunctions.decodeBase64.argtypes = [ctypes.c_wchar_p]
+cfunctions.decodeBase64.argtypes = [ctypes.c_char_p]
 cfunctions.decodeBase64.restype = ctypes.c_void_p
 
 # string to base64
@@ -62,9 +62,10 @@ def encode_base64(string_in = ""):
 
 # base64 to string
 def decode_base64(string_in = ""):
-    pstring_out = cfunctions.decodeBase64(string_in)
-    pstring_out = ctypes.cast(pstring_out, ctypes.c_wchar_p)
-    string_out = pstring_out.value
+    pstring_out = cfunctions.decodeBase64(bytes(string_in, "utf-8"))
+    pstring_out = ctypes.cast(pstring_out, ctypes.c_char_p)
+    # decode UTF-8 and trim to max comment length
+    string_out = str(pstring_out.value, "utf-8", "replace")[:10000]
     cfunctions.freewchar(pstring_out)
     return string_out
 

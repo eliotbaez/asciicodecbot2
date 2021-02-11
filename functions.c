@@ -1,18 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
-#include <wchar.h>
 #include <stdio.h>
 
 /* TODO:
-   Remove maximum output length and instead always allocate enough memory to
-   complete the string conversion. Since UTF-8 text uses variable-width
-   characters, it makes the most sense to let these functions perform their
-   conversions completely, then truncate the strings in the python script.
-   This applies to all functions. */
-/* TODO:
    Change all string function return types to char* instead of const char* */
 /* Reddit maximum acceptable comment length */
-#define MAX_COMMENT_LENGTH 10000
 
 void * freewchar (void * ptr) {
 	free (ptr);
@@ -368,7 +360,7 @@ char * rot13 (const char * stringIn) {
 	size_t length = strlen (stringIn);
 	
 	/* allocate memory for output string */
-	char * stringOut = (char *) malloc (MAX_COMMENT_LENGTH + 1);
+	char * stringOut = (char *) malloc (length + 1);
 	
 	for (index = 0; index < length; index++) {
 		num = stringIn[index];
@@ -399,6 +391,7 @@ char * rot47 (const char * stringIn) {
 
 	for (index = 0; index < length; index++) {
 		num = stringIn[index];
+		/* if character is an ASCII printable character */
 		stringOut[index] = '!' <= num && num <= '~'
 			? (num + 14) % 94 + 33
 			: num;
@@ -499,65 +492,70 @@ char * encodeBase64 (const unsigned char * stringIn) {
 }
 
 /* base64 to plaintext */
-wchar_t * decodeBase64 (const wchar_t * stringIn) {
-	/* allocate memory for short string */
-	char * sStringIn = (char *) malloc (MAX_COMMENT_LENGTH + 1);
-	/* convert wide input into short string */
-	size_t characters;
-	characters = wcstombs (sStringIn, stringIn, MAX_COMMENT_LENGTH);
-	sStringIn[characters] = 0;
-
-	char stringOut[MAX_COMMENT_LENGTH + 1];
-	wchar_t * wStringOut;
+char * decodeBase64 (const char * stringIn) {
 	int outputIndex = 0;
-	
 	int index;
-	/* group must be at least 24 bits wide */
+	/* group variable must be at least 24 bits wide */
 	u_int32_t group;
 	char buf;
-	size_t length = strlen (sStringIn);
-	
+	size_t length = strlen (stringIn);
+	/* length of input string excluding any bytes that used padding */
+	size_t adjustedLength;
+	/* number of bytes in the output string that will be empty */
 	int emptyBytes;
 	
-	/* trim off up to two padding characters */
+	/* copy stringIn to a mutable string */
+	char * adjustedStringIn = (char *) malloc (length + 1);
+	strcpy (adjustedStringIn, stringIn);
+	
+	/* trim off up to two trailing padding characters from input */
 	for (buf = 0; buf < 2; buf++) { /* do twice :^) */
-		if (sStringIn[length - 1] == '=') {
-			sStringIn[--length] = 0;
+		if (adjustedStringIn[length - 1] == '=') {
+			adjustedStringIn[--length] = '\0';
 		}
 	}
+	/* use this newly calculated length to find adjusted length */
+	adjustedLength = length - (length % 4);
 
+	/* allocate memory for output string:
+	   The length of the output string will be 3 * ceil (length of input / 4).
+	   Since there's no ceiling division operator for ints, we use this obscure
+	   calculation to obtain the same result. We add 1 byte to accomodate the
+	   null terminator. */
+	char * stringOut = (char *) malloc ((length / 4 + (length % 4 != 0)) * 3 + 1);
+	
 	/* check for invalid characters, exit if found */
 	for (index = 0; index < length; index++) {
-		buf = sStringIn[index];
+		buf = adjustedStringIn[index];
 		if (!(
-					('A' <= buf && buf <= 'Z')
-					|| ('a' <= buf && buf <= 'z')
-					|| ('0' <= buf && buf <= '9')
-					|| buf == '/'
-					|| buf == '+')) {
+			('A' <= buf && buf <= 'Z')
+			|| ('a' <= buf && buf <= 'z')
+			|| ('0' <= buf && buf <= '9')
+			|| buf == '/'
+			|| buf == '+')) {
 			/* return error message if invalid characters are found */
-                        wStringOut = (wchar_t *) malloc (20 * sizeof (wchar_t));
-                        wcscpy (wStringOut, L"Input invalid.");
-			
-                        free (sStringIn);
-                        return wStringOut;
+			stringOut = (char *) realloc (stringOut, 20 * sizeof (char));
+			strcpy (stringOut, "Input invalid.");
+
+			free (adjustedStringIn);
+			return stringOut;
 		}
 	}
 
-	/* else (implied) */
-	if (length % 4 == 1) { /* not enough characters */
-		/* return error message if invalid characters are found */
-		wStringOut = (wchar_t *) malloc (20 * sizeof (wchar_t));
-		wcscpy (wStringOut, L"Input invalid.");
+	/* if no invalid characters are found */
+	if (length % 4 == 1) {
+		/* return error message if not enough or too many characters */
+		stringOut = (char *) realloc (stringOut, 20 * sizeof (char));
+		strcpy (stringOut, "Input invalid.");
 		
-		free (sStringIn);
-		return wStringOut;
+		free (adjustedStringIn);
+		return stringOut;
 	}
 
-	/* translate text into integers */
+	/* translate ASCII characters into integers */
 	index = 0;
 	while (index < length) {
-		buf = sStringIn[index];
+		buf = adjustedStringIn[index];
 		if ('A' <= buf && buf <= 'Z') /* capital alphabet */
 			buf -= 65;
 		else if ('a' <= buf && buf <= 'z') /* small alphabet */
@@ -568,55 +566,47 @@ wchar_t * decodeBase64 (const wchar_t * stringIn) {
 			buf = 62;
 		else if (buf == '/')
 			buf = 63;
-		sStringIn[index++] = buf;
+		adjustedStringIn[index++] = buf;
 	}
 
-	/* group integers into byte triplets */
-	index = 0;
+	/* group characters into byte triplets */
 	emptyBytes = (4 - (length % 4)) % 4;
-
-	while (index < length) {
+	index = 0;
+	while (index < adjustedLength) {
 		group = 0;
-
-		if (length + emptyBytes - index <= 4) { /* only if on last group */
-			group |= sStringIn[index] << 18; /* first 2 chars will always be valid */
-			group |= sStringIn[index + 1] << 12; 
-			if (emptyBytes == 1 || emptyBytes == 0) /* if only last byte used padding or none used */
-				group |= sStringIn[index + 2] << 6;
-			if (emptyBytes == 0) /* if no padding was needed */
-				group |= sStringIn[index + 3];
-		} else { /* for all other character groups */
-			group |= sStringIn[index] << 18;
-			group |= sStringIn[index + 1] << 12;
-			group |= sStringIn[index + 2] << 6;
-			group |= sStringIn[index + 3];
-		}
+		group |= adjustedStringIn[index] << 18;
+		group |= adjustedStringIn[index + 1] << 12;
+		group |= adjustedStringIn[index + 2] << 6;
+		group |= adjustedStringIn[index + 3];
 
 		/* now split into 3 bytes */
-		for (buf = 2; buf >= 0; buf--) {
-			stringOut[outputIndex] = (group >> (8 * buf));
-			if (stringOut[outputIndex] == 0) {
-				/* replace null with dot to avoid premature termination */
-				stringOut[outputIndex] = '.';
-			}
-			outputIndex++;
-		}
+		for (buf = 2; buf >= 0; buf--)
+			stringOut[outputIndex++] = (group >> (8 * buf));
 		index += 4;
 	}
 
-	/* terminate output string and discard any empty bytes */
+	/* for the bytes at the end that required padding, if any;
+	   If none required padding, then adjustedLength == length, so this loop
+	   will not execute at all. */
+	while (index < length) {
+		group = 0;
+		group |= adjustedStringIn[index] << 18; /* first 2 chars will always be valid */
+		group |= adjustedStringIn[index + 1] << 12; 
+		if (emptyBytes == 1 || emptyBytes == 0) /* if only last byte used padding or none used */
+			group |= adjustedStringIn[index + 2] << 6;
+		if (emptyBytes == 0) /* if no padding was needed */
+			group |= adjustedStringIn[index + 3];
+		
+		/* now split into 3 bytes */
+		for (buf = 2; buf >= 0; buf--)
+			stringOut[outputIndex++] = (group >> (8 * buf));
+		index += 4;
+	}
+
+	/* terminate output string and trim off any empty bytes */
 	stringOut[outputIndex - emptyBytes] = 0;
 
-	/* dynamically allocate memory for output string */
-	wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
-	/* convert short string to wchar_t string */
-	characters = mbstowcs (wStringOut, stringOut, MAX_COMMENT_LENGTH);
-	/* terminate wide string */
-	wStringOut[characters] = 0;
-	/* free memory used for short input string */
-	free (sStringIn);
-
-	return wStringOut;
-	/* remember to free wStringOut after use! */
+	return stringOut;
+	/* remember to free stringOut after use! */
 }
 
