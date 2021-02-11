@@ -9,6 +9,8 @@
    characters, it makes the most sense to let these functions perform their
    conversions completely, then truncate the strings in the python script.
    This applies to all functions. */
+/* TODO:
+   Change all string function return types to char* instead of const char* */
 /* Reddit maximum acceptable comment length */
 #define MAX_COMMENT_LENGTH 10000
 
@@ -337,60 +339,39 @@ const char * encodeDec (const unsigned char * string) {
 }
 
 /* ROT5 cipher */
-wchar_t * rot5 (const wchar_t * stringIn) {
-	/* allocate memory for short string */
-	char * sStringIn = (char *) malloc (MAX_COMMENT_LENGTH + 1);
-	/* convert wide input into short string */
-	size_t characters;
-	characters = wcstombs (sStringIn, stringIn, MAX_COMMENT_LENGTH);
-	sStringIn[characters] = 0;
-
-	char stringOut[MAX_COMMENT_LENGTH + 1];
-
+char * rot5 (const char * stringIn) {
 	int index;
 	int num;
-	size_t length = strlen (sStringIn);
+	size_t length = strlen (stringIn);
 	
+	/* allocate memory for output string */
+	char * stringOut = (char *) malloc (length + 1);
+
 	for (index = 0; index < length; index++) {
-		num = sStringIn[index];
+		num = stringIn[index];
 		stringOut[index] = '0' <= num && num <= '9'
 			? (num - 43) % 10 + 48
 			: num;
 	}
 	
-	/* terminate short string */
-	stringOut[index] = 0;
-	
-	/* dynamically allocate memory for output string */
-	wchar_t * wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
-	/* convert short string to wchar_t string */
-	characters = mbstowcs (wStringOut, stringOut, MAX_COMMENT_LENGTH);
-	/* terminate wide string */
-	wStringOut[characters] = 0;
-	/* free memory used for short input string */
-	free (sStringIn);
+	/* terminate output string */
+	stringOut[index] = '\0';
 
-	return wStringOut;
-	/* remember to free wStringOut after use! */
+	return stringOut;
+	/* remember to free stringOut after use! */
 }
 
 /* ROT13 cipher */
-wchar_t * rot13 (const wchar_t * stringIn) {
-	/* allocate memory for short string */
-	char * sStringIn = (char *) malloc (MAX_COMMENT_LENGTH + 1);
-	/* convert wide input into short string */
-	size_t characters;
-	characters = wcstombs (sStringIn, stringIn, MAX_COMMENT_LENGTH);
-	sStringIn[characters] = 0;
-
-	char stringOut[MAX_COMMENT_LENGTH + 1];
-	
+char * rot13 (const char * stringIn) {
 	int index;
 	int num;
-	size_t length = strlen (sStringIn);
+	size_t length = strlen (stringIn);
+	
+	/* allocate memory for output string */
+	char * stringOut = (char *) malloc (MAX_COMMENT_LENGTH + 1);
 	
 	for (index = 0; index < length; index++) {
-		num = sStringIn[index];
+		num = stringIn[index];
 		if ('A' <= num && num <= 'Z') {
 			stringOut[index] = (num - 52) % 26 + 65;
 		} else if ('a' <= num && num <= 'z') {
@@ -400,58 +381,34 @@ wchar_t * rot13 (const wchar_t * stringIn) {
 		}
 	}
 	
-	/* terminate short string */
+	/* terminate output string */
 	stringOut[index] = 0;
 
-	/* dynamically allocate memory for output string */
-	wchar_t * wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
-	/* convert short string to wchar_t string */
-	characters = mbstowcs (wStringOut, stringOut, MAX_COMMENT_LENGTH);
-	/* terminate wide string */
-	wStringOut[characters] = 0;
-	/* free memory used for short input string */
-	free (sStringIn);
-
-	return wStringOut;
-	/* remember to free wStringOut after use! */
+	return stringOut;
+	/* remember to free stringOut after use! */
 }
 
 /* ROT47 cipher */
-wchar_t * rot47 (const wchar_t * stringIn) {
-	/* allocate memory for short string */
-	char * sStringIn = (char *) malloc (MAX_COMMENT_LENGTH + 1);
-	/* convert wide input into short string */
-	size_t characters;
-	characters = wcstombs (sStringIn, stringIn, MAX_COMMENT_LENGTH);
-	sStringIn[characters] = 0;
-
-	char stringOut[MAX_COMMENT_LENGTH + 1];
-
+char * rot47 (const char * stringIn) {
 	int index;
 	int num;
-	size_t length = strlen (sStringIn);
+	size_t length = strlen (stringIn);
 	
+	/* allocate memory for output string */
+	char * stringOut = (char *) malloc (length + 1);
+
 	for (index = 0; index < length; index++) {
-		num = sStringIn[index];
+		num = stringIn[index];
 		stringOut[index] = '!' <= num && num <= '~'
 			? (num + 14) % 94 + 33
 			: num;
 	}
 	
-	/* terminate short string */
+	/* terminate output string */
 	stringOut[index] = 0;
-	
-	/* dynamically allocate memory for output string */
-	wchar_t * wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
-	/* convert short string to wchar_t string */
-	characters = mbstowcs (wStringOut, stringOut, MAX_COMMENT_LENGTH);
-	/* terminate wide string */
-	wStringOut[characters] = 0;
-	/* free memory used for short input string */
-	free (sStringIn);
 
-	return wStringOut;
-	/* remember to free wStringOut after use! */
+	return stringOut;
+	/* remember to free stringOut after use! */
 }
 
 /* plaintext string to base64 */

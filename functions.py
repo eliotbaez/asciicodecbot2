@@ -37,13 +37,13 @@ cfunctions.encodeHex.restype = ctypes.c_void_p
 cfunctions.decodeHex.argtypes = [ctypes.c_char_p]
 cfunctions.decodeHex.restype = ctypes.c_void_p
 # rot5
-cfunctions.rot5.argtypes = [ctypes.c_wchar_p]
+cfunctions.rot5.argtypes = [ctypes.c_char_p]
 cfunctions.rot5.restype = ctypes.c_void_p
 # rot13
-cfunctions.rot13.argtypes = [ctypes.c_wchar_p]
+cfunctions.rot13.argtypes = [ctypes.c_char_p]
 cfunctions.rot13.restype = ctypes.c_void_p
 # rot47
-cfunctions.rot47.argtypes = [ctypes.c_wchar_p]
+cfunctions.rot47.argtypes = [ctypes.c_char_p]
 cfunctions.rot47.restype = ctypes.c_void_p
 # base64
 cfunctions.encodeBase64.argtypes = [ctypes.c_wchar_p]
@@ -69,25 +69,28 @@ def decode_base64(string_in = ""):
 
 # ROT13 is the same for encoding and decoding, so only one function
 def rot13(string_in = ""):
-    pstring_out = cfunctions.rot13(string_in)
-    pstring_out = ctypes.cast(pstring_out, ctypes.c_wchar_p)
-    string_out = pstring_out.value
+    pstring_out = cfunctions.rot13(bytes(string_in, "utf-8"))
+    pstring_out = ctypes.cast(pstring_out, ctypes.c_char_p)
+    # decode UTF-8 and trim to max comment length
+    string_out = str(pstring_out.value, "utf-8")[:10000]
     cfunctions.freewchar(pstring_out)
     return string_out
 
 # ROT5 same as above function, but for digits only
 def rot5(string_in = ""):
-    pstring_out = cfunctions.rot5(string_in)
-    pstring_out = ctypes.cast(pstring_out, ctypes.c_wchar_p)
-    string_out = pstring_out.value
+    pstring_out = cfunctions.rot5(bytes(string_in, "utf-8"))
+    pstring_out = ctypes.cast(pstring_out, ctypes.c_char_p)
+    # decode UTF-8 and trim to max comment length
+    string_out = str(pstring_out.value, "utf-8")[:10000]
     cfunctions.freewchar(pstring_out)
     return string_out
 
 # ROT47 similar to the above, but with all ASCII printable characters
 def rot47(string_in = ""):
-    pstring_out = cfunctions.rot47(string_in)
-    pstring_out = ctypes.cast(pstring_out, ctypes.c_wchar_p)
-    string_out = pstring_out.value
+    pstring_out = cfunctions.rot47(bytes(string_in, "utf-8"))
+    pstring_out = ctypes.cast(pstring_out, ctypes.c_char_p)
+    # decode UTF-8 and trim to max comment length
+    string_out = str(pstring_out.value, "utf-8")[:10000]
     cfunctions.freewchar(pstring_out)
     return string_out
     
