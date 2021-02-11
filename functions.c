@@ -412,81 +412,65 @@ char * rot47 (const char * stringIn) {
 }
 
 /* plaintext string to base64 */
-wchar_t * encodeBase64 (const wchar_t * stringIn) {
-	/* allocate memory for short string */
-	/* Short string will not necessarily be the same length as the wide string */
-	char * sStringIn = (char *) malloc (MAX_COMMENT_LENGTH + 1);
-	/* char * sStringIn = (char *) malloc (wcslen (stringIn) + 1); */
-	/* convert wide input into short string */
-	size_t characters;
-	characters = wcstombs (sStringIn, stringIn, MAX_COMMENT_LENGTH);
-	sStringIn[characters] = 0;
-	
-	char stringOut[MAX_COMMENT_LENGTH + 1];
-	wchar_t * wStringOut;
+char * encodeBase64 (const unsigned char * stringIn) {
 	int outputIndex = 0;
-
-	int index = 0;
-	/* group must be at least 24 bits wide */
-	u_int32_t group = 0; 
+	int index;
+	/* group variable must be at least 24 bits wide */
+	u_int32_t group; 
 	char buf;
-	size_t length = wcslen (stringIn);
+	size_t length = strlen (stringIn);
+	/* length of input string excluding any bytes that require padding */
+	size_t adjustedLength = length - (length % 3);
 	
-	/* check for invalid characters in wide string, abort if found */
-	for ( ; index < length; index++) {
-		if (stringIn[index] > 127) {
-			/* return error message if invalid characters are found */
-                        wStringOut = (wchar_t *) malloc (20 * sizeof (wchar_t));
-                        wcscpy (wStringOut, L"Input invalid.");
-
-                        free (sStringIn);
-                        return wStringOut;
-		}
-		
-	}
-
-	index = 0;
-	length = strlen (sStringIn);
-	/* ceiling division for integers */
-	if ((length / 3 + (length % 3 != 0)) * 4 > MAX_COMMENT_LENGTH) 
-		length = MAX_COMMENT_LENGTH / 4 * 3;
-	/* printf ("length adjusted to %d\n", length);*/
+	/* allocate memory for output string:
+	   The length of the output string will be 4 * ceil (length of input / 3).
+	   Since there's no ceiling division operator for ints, we use this obscure
+	   calculation to obtain the same result. We add 1 byte to accomodate the
+	   null terminator. */
+	char * stringOut = (char *) malloc ((length / 3 + (length % 3 != 0)) * 4 + 1);
 	
+	/* the number of empty bytes at the end of the base64-encoded string;
+	   these bytes will be used as padding. */
 	int emptyBytes = (3 - (length % 3)) % 3;
 
-	/* split byte triplets into groups of three 6-bit characters */
-	while (index < length) {
+	/* split byte triplets into groups of four 6-bit characters */
+	index = 0;
+	while (index < adjustedLength) {
+		/* merge byte triplets into a single 24-bit integer */
 		group = 0;
-		if (length - index <= 3) {
-			/* only if on last triplet in input string: */
-			/* first byte will always be valid */
-			group |= sStringIn[index] << 16;
-			if (emptyBytes == 1 || emptyBytes == 0) {
-				/* only if last byte will need padding or if none needed */
-				group |= sStringIn[index + 1] << 8;
-			}
-			if (emptyBytes == 0) {
-				/* only if no padding will be needed */
-				group |= sStringIn[index + 2];
-			}
-		} else {
-			/* for all other byte triplets: */
-			group |= sStringIn[index] << 16;
-			group |= sStringIn[index + 1] << 8;
-			group |= sStringIn[index + 2];
-		}
-
-		/* now split into four 6-byte characters */
+		group |= stringIn[index] << 16;
+		group |= stringIn[index + 1] << 8;
+		group |= stringIn[index + 2];
+		
+		/* now split that integer into four 6-bit characters */
 		for (buf = 3; buf >= 0; buf--) 
-			stringOut[outputIndex++] = (group >> (6 * buf)) & 63;
+			stringOut[outputIndex++] = (group >> (6 * buf)) & 0x3F;
 		index += 3;
 	}
-	/* terminate output string */
-	stringOut[outputIndex] = 0;
 
-	/* translate output characters into valid text */
+	/* for the bytes at the end that require padding, if any;
+	   If none require padding, then adjustedLength == length, so this loop
+	   will not execute at all. */
+	while (index < length) {
+		group = 0;
+		/* first byte will always be a complete character */
+		group |= stringIn[index] << 16;
+		if (emptyBytes == 1)
+			/* only if last byte will need padding */
+			group |= stringIn[index + 1] << 8;
+
+		/* now split into four 6-bit characters */
+		for (buf = 3; buf >= 0; buf--) 
+			stringOut[outputIndex++] = (group >> (6 * buf)) & 0x3F;
+		index += 3;
+	}
+
+	/* terminate output string */
+	stringOut[outputIndex] = '\0';
+
+	/* translate output characters into valid ASCII text */
 	index = 0;
-	/* more ceiling division for integers */
+	/* more ceiling division for integers (refer to declaration of stringOut) */
 	length = (length / 3 + (length % 3 != 0)) * 4;
 	while (index < length) {
 		buf = stringOut[index];
@@ -503,24 +487,15 @@ wchar_t * encodeBase64 (const wchar_t * stringIn) {
 		stringOut[index++] = buf;
 	}
 
-	/* overwrite padding characters */
+	/* overwrite bytes designated as padding, with the padding character '=' */
 	for (index = length - emptyBytes; index < length; index++)
 		stringOut[index] = '=';
 	
 	/* terminate short string */
 	stringOut[index] = 0;
-	
-	/* dynamically allocate memory for output string */
-	wStringOut = (wchar_t *) malloc ((MAX_COMMENT_LENGTH + 1) * sizeof (wchar_t));
-	/* convert short string to wchar_t string */
-	characters = mbstowcs (wStringOut, stringOut, MAX_COMMENT_LENGTH);
-	/* terminate wide string */
-	wStringOut[characters] = 0;
-	/* free memory used for short input string */
-	free (sStringIn);
 
-	return wStringOut;
-	/* remember to free wStringOut after use! */
+	return stringOut;
+	/* remember to free stringOut after use! */
 }
 
 /* base64 to plaintext */
