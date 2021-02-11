@@ -140,7 +140,7 @@ def encode_bin(string = ""):
 def decode_bin(binstr = ""):
     pstring = cfunctions.decodeBin(bytes(binstr, "utf-8"))
     pstring = ctypes.cast(pstring, ctypes.c_char_p)
-    string = str(pstring.value, "utf-8", "replace")[:10000]
     # decode UTF-8 and trim to max comment length
+    string = str(pstring.value, "utf-8", "replace")[:10000]
     cfunctions.freewchar(pstring)
     return string

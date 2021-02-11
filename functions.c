@@ -43,7 +43,14 @@ const char * decodeBin (const char * binStr) {
 		}
 	}
 	
+	/* skip past any leading spaces */
 	index = 0;
+	while (index < length) {
+		if (binStr[index] != ' ')
+			break;
+		index++;
+	}
+
 	char bitNo;
 	while (index + 8 <= length) {
 		num = 0;
@@ -150,9 +157,14 @@ const char * decodeHex (const char * hexStr) {
 		}
 	}
 
-	/* TODO:
-	   skip past leading spaces to avoid decoding errors */
+	/* skip past any leading spaces */
 	index = 0;
+	while (index < length) {
+		if (hexStr[index] != ' ')
+			break;
+		index++;
+	}
+
 	while (length - index >= 2) {
 		num = 0;
 
