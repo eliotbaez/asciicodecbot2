@@ -136,6 +136,9 @@ try:
                                 else: # only other option is for the target to be the parent comment
                                     if comment.parent_id.find("t3_", 0) == 0:
                                         target = submission.selftext
+                                        # if selftext is empty, then use title
+                                        if target == "":
+                                            target = submission.title
                                     else:
                                         target = comment.parent().body
                                 if service_requested & constants.MASK_CMD == constants.CMD_NONE:
