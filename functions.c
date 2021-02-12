@@ -2,18 +2,12 @@
 #include <string.h>
 #include <stdio.h>
 
-/* TODO:
-   Change all string function return types to char* instead of const char* */
-/* Reddit maximum acceptable comment length */
-
-void * freewchar (void * ptr) {
-	free (ptr);
-	/* return address of freed memory */
-	return ptr;
+void freechar (char * ptr) {
+	return free (ptr);
 }
 
 /* decode string of binary into a plaintext string */
-const char * decodeBin (const char * binStr) {
+char * decodeBin (const char * binStr) {
 	int index;
 	int outputIndex = 0;
 	unsigned char num;
@@ -106,7 +100,7 @@ char * encodeBin (const char * string) {
 }
 
 /* decode string of hexadecimal into plaintext */
-const char * decodeHex (const char * hexStr) {
+char * decodeHex (const char * hexStr) {
 	int index;
 	int outputIndex = 0;
 	unsigned char num;
@@ -191,7 +185,7 @@ const char * decodeHex (const char * hexStr) {
 }
 
 /* encode plaintext string into hexadeximal */
-const char * encodeHex (const char * string) {
+char * encodeHex (const char * string) {
 	int index;
 	int outputIndex = 0;
 	size_t length = strlen (string);
@@ -229,7 +223,7 @@ const char * encodeHex (const char * string) {
 }
 
 /* decode decimal string into plaintext */
-const char * decodeDec (const char * decStr) {
+char * decodeDec (const char * decStr) {
 	int index;
 	int outputIndex = 0;
 	size_t length = strlen (decStr);
@@ -294,7 +288,7 @@ const char * decodeDec (const char * decStr) {
 }
 
 /* encode plaintext into decimal string */
-const char * encodeDec (const unsigned char * string) {
+char * encodeDec (const unsigned char * string) {
 	/* string is declared as const unsigned char* instead of const char*
 	   because we require the characters to be expressed as solely positive
 	   values in order for the math in this function to work. */
