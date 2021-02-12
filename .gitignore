@@ -4,3 +4,4 @@ posts_seen.txt
 __pycache__/*
 .log/*
 cfunctions.so
+.vscode/*
