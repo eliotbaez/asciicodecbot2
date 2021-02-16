@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdint.h>
 
 void freechar (char * ptr) {
 	return free (ptr);
@@ -230,7 +231,7 @@ char * decodeDec (const char * decStr) {
 	/* maximum value of buf is 4294967265
 	   Any number string contained in decStr up to 4294967296 will yield that
 	   number % 256. Any number larger than this will yield undefined behavior. */
-	u_int32_t buf = 0;
+	uint32_t buf = 0;
 
 	/* allocate enough memory for output string:
 	   2 is the minimum number of decimal digits and spaces that can be used
@@ -403,7 +404,7 @@ char * encodeBase64 (const unsigned char * stringIn) {
 	int outputIndex = 0;
 	int index;
 	/* group variable must be at least 24 bits wide */
-	u_int32_t group; 
+	uint32_t group; 
 	char buf;
 	size_t length = strlen (stringIn);
 	/* length of input string excluding any bytes that require padding */
@@ -490,7 +491,7 @@ char * decodeBase64 (const char * stringIn) {
 	int outputIndex = 0;
 	int index;
 	/* group variable must be at least 24 bits wide */
-	u_int32_t group;
+	uint32_t group;
 	char buf;
 	size_t length = strlen (stringIn);
 	/* length of input string excluding any bytes that used padding */
