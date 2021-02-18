@@ -1,5 +1,9 @@
-functions: functions.c
-	gcc -fPIC -shared -o cfunctions.so functions.c
+# installation requires root permissions
+install: functions.c
+	gcc -fPIC -shared -o /usr/lib/libasciicodec.so functions.c
 
 debug: functions.c
-	gcc -fPIC -shared -o cfunctions.so -g -Og -std=gnu99 functions.c
+	gcc -fPIC -shared -o /usr/lib/libasciicodec.so -g -Og -std=gnu99 functions.c
+
+uninstall:
+	rm /usr/lib/libasciicodec.so

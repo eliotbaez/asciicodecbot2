@@ -1,12 +1,15 @@
 # functions.py
 
-# The functions defined in functions.py will act as wrappers for the C
-# functions as they become available. This will help to declutter the
-# main script.
+# The functions defined here act as wrappers for the functions defined
+# in functions.c. They are accessed through the shared library 
+# libasciicodec. All function wrappers are define here because they
+# would otherwise clutter the main script, asciicodecbot2.py
 
 import ctypes
 
-cfunctions = ctypes.cdll.LoadLibrary("./cfunctions.so")
+# loading the shared library using the absolute path set in the
+# Makefile during compile time
+cfunctions = ctypes.cdll.LoadLibrary("/usr/lib/libasciicodec.so")
 
 # Please note that all of these functions actually return char *;
 # they must be cast to the proper type before being used, but I am
