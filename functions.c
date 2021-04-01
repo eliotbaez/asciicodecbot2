@@ -3,18 +3,23 @@
 #include <stdio.h>
 #include <stdint.h>
 
+/* TODO:
+   create wrapper functions that automatically detect length and
+   starting position of the string to be decoded */
+
 void freechar (char * ptr) {
 	if (ptr != NULL)
 		free (ptr);
 }
 
+/*** FUNCTIONS ***/
+
 /* decode string of binary into a plaintext string */
-char * decodeBin (const char * binStr) {
+char * decodenBin (const char * binStr, size_t length) {
 	int index;
 	int outputIndex = 0;
 	unsigned char num;
-	size_t length = strlen (binStr);
-
+	
 	/* allocate enough memory for output string:
 	   8 is the minimum number of bits/spaces that can be used to display a
 	   single character, so we divide the length by 8 to find the maximum
@@ -66,12 +71,11 @@ char * decodeBin (const char * binStr) {
 }
 
 /* encode plaintext string into binary */
-char * encodeBin (const char * string) {
+char * encodenBin (const char * string, size_t length) {
 	int index;
 	int outputIndex = 0;
 	unsigned char num;
-	size_t length = strlen (string);
-	
+		
 	/* allocate enough memory for output string:
 	   9 is the maximum number of bits/spaces that can be used to display a
 	   single character, so we multiply the length by 9 to find the maximum
@@ -100,12 +104,11 @@ char * encodeBin (const char * string) {
 }
 
 /* decode string of hexadecimal into plaintext */
-char * decodeHex (const char * hexStr) {
+char * decodenHex (const char * hexStr, size_t length) {
 	int index;
 	int outputIndex = 0;
 	unsigned char num;
-	size_t length = strlen (hexStr);
-
+	
 	/* allocate enough memory for output string:
 	   2 is the minimum number of hex digits that can be used to display a
 	   single character, so we divide the length by 2 to find the maximum
@@ -183,11 +186,10 @@ char * decodeHex (const char * hexStr) {
 }
 
 /* encode plaintext string into hexadeximal */
-char * encodeHex (const char * string) {
+char * encodenHex (const char * string, size_t length) {
 	int index;
 	int outputIndex = 0;
-	size_t length = strlen (string);
-
+	
 	/* allocate enough memory for output string:
 	   3 is the maximum number of digits/spaces that can be used to display a
 	   single character, so we multiply the length by 3 to find the maximum
@@ -221,11 +223,10 @@ char * encodeHex (const char * string) {
 }
 
 /* decode decimal string into plaintext */
-char * decodeDec (const char * decStr) {
+char * decodenDec (const char * decStr, size_t length) {
 	int index;
 	int outputIndex = 0;
-	size_t length = strlen (decStr);
-	/* maximum value of buf is 4294967265
+		/* maximum value of buf is 4294967265
 	   Any number string contained in decStr up to 4294967296 will yield that
 	   number % 256. Any number larger than this will yield undefined behavior. */
 	uint32_t buf = 0;
@@ -284,15 +285,14 @@ char * decodeDec (const char * decStr) {
 }
 
 /* encode plaintext into decimal string */
-char * encodeDec (const unsigned char * string) {
+char * encodenDec (const unsigned char * string, size_t length) {
 	/* string is declared as const unsigned char* instead of const char*
 	   because we require the characters to be expressed as solely positive
 	   values in order for the math in this function to work. */
 	
 	int index;
 	int outputIndex = 0;
-	size_t length = strlen (string);
-
+	
 	/* allocate enough memory for output string:
 	   4 is the maximum number of digits/spaces that can be used to display a
 	   single character, so we multiply the length by 4 to find the maximum
@@ -321,11 +321,10 @@ char * encodeDec (const unsigned char * string) {
 }
 
 /* ROT5 cipher */
-char * rot5 (const char * stringIn) {
+char * nrot5 (const char * stringIn, size_t length) {
 	int index;
 	int num;
-	size_t length = strlen (stringIn);
-	
+		
 	/* allocate memory for output string */
 	char * stringOut = (char *) malloc (length + 1);
 
@@ -344,11 +343,10 @@ char * rot5 (const char * stringIn) {
 }
 
 /* ROT13 cipher */
-char * rot13 (const char * stringIn) {
+char * nrot13 (const char * stringIn, size_t length) {
 	int index;
 	int num;
-	size_t length = strlen (stringIn);
-	
+		
 	/* allocate memory for output string */
 	char * stringOut = (char *) malloc (length + 1);
 	
@@ -371,11 +369,10 @@ char * rot13 (const char * stringIn) {
 }
 
 /* ROT47 cipher */
-char * rot47 (const char * stringIn) {
+char * nrot47 (const char * stringIn, size_t length) {
 	int index;
 	int num;
-	size_t length = strlen (stringIn);
-	
+		
 	/* allocate memory for output string */
 	char * stringOut = (char *) malloc (length + 1);
 
@@ -395,14 +392,13 @@ char * rot47 (const char * stringIn) {
 }
 
 /* plaintext string to base64 */
-char * encodeBase64 (const unsigned char * stringIn) {
+char * encodenBase64 (const unsigned char * stringIn, size_t length) {
 	int outputIndex = 0;
 	int index;
 	/* group variable must be at least 24 bits wide */
 	uint32_t group; 
 	char buf;
-	size_t length = strlen (stringIn);
-	/* length of input string excluding any bytes that require padding */
+		/* length of input string excluding any bytes that require padding */
 	size_t adjustedLength = length - (length % 3);
 	
 	/* allocate memory for output string:
@@ -482,14 +478,13 @@ char * encodeBase64 (const unsigned char * stringIn) {
 }
 
 /* base64 to plaintext */
-char * decodeBase64 (const char * stringIn) {
+char * decodenBase64 (const char * stringIn, size_t length) {
 	int outputIndex = 0;
 	int index;
 	/* group variable must be at least 24 bits wide */
 	uint32_t group;
 	char buf;
-	size_t length = strlen (stringIn);
-	/* length of input string excluding any bytes that used padding */
+		/* length of input string excluding any bytes that used padding */
 	size_t adjustedLength;
 	/* number of bytes in the output string that will be empty */
 	int emptyBytes;
@@ -596,3 +591,70 @@ char * decodeBase64 (const char * stringIn) {
 	/* remember to free stringOut after use! */
 }
 
+/*** WRAPPER FUNCTIONS ***/
+
+/* decode string of binary into a plaintext string */
+char * decodeBin (const char * binStr) {
+	size_t length = strlen (binStr);
+	return decodenBin (binStr, length);
+}
+
+/* encode plaintext string into binary */
+char * encodeBin (const char * string) {
+	size_t length = strlen (string);
+	return encodenBin (string, length);
+}
+
+/* decode string of hexadecimal into plaintext */
+char * decodeHex (const char * hexStr) {
+	size_t length = strlen (hexStr);
+	return decodenHex (hexStr, length);
+}
+
+/* encode plaintext string into hexadeximal */
+char * encodeHex (const char * string) {
+	size_t length = strlen (string);
+	return encodenHex (string, length);
+}
+
+/* decode decimal string into plaintext */
+char * decodeDec (const char * decStr) {
+	size_t length = strlen (decStr);
+	return decodenDec (decStr, length);
+}
+
+/* encode plaintext into decimal string */
+char * encodeDec (const unsigned char * string) {
+	size_t length = strlen (string);
+	return encodenDec (string, length);
+}
+
+/* ROT5 cipher */
+char * rot5 (const char * stringIn) {
+	size_t length = strlen (stringIn);
+	return nrot5 (stringIn, length);
+}
+
+/* ROT13 cipher */
+char * rot13 (const char * stringIn) {
+	size_t length = strlen (stringIn);
+	return nrot13 (stringIn, length);
+}
+
+/* ROT47 cipher */
+char * rot47 (const char * stringIn) {
+	size_t length = strlen (stringIn);
+	return nrot47 (stringIn, length);
+}
+
+/* plaintext string to base64 */
+char * encodeBase64 (const unsigned char * stringIn) {
+	size_t length = strlen (stringIn);
+	return encodenBase64 (stringIn, length);
+}
+
+/* base64 to plaintext */
+char * decodeBase64 (const char * stringIn) {
+	size_t length = strlen (stringIn);
+	return decodenBase64 (stringIn, length);
+}
