@@ -595,8 +595,24 @@ char * decodenBase64 (const char * stringIn, size_t length) {
 
 /* decode string of binary into a plaintext string */
 char * decodeBin (const char * binStr) {
+	char * stringOut;
+	size_t start = 0;
 	size_t length = strlen (binStr);
-	return decodenBin (binStr, length);
+	stringOut = decodenBin (binStr, length);
+
+	if (stringOut == NULL) {
+		/* try to find beginning of binary data */
+		while (start < length) {
+			if (binStr[start] == '0' || binStr[start] == '1')
+				break;
+			start++;
+		}
+		/* return null if there is literally no valid data in the string */
+		if (start == length) return NULL;
+		return decodenBin (binStr + start, length - start);
+	} else {
+		return stringOut;
+	}
 }
 
 /* encode plaintext string into binary */
