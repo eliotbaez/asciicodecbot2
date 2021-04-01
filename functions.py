@@ -9,7 +9,7 @@ import ctypes
 
 # loading the shared library using the absolute path set in the
 # Makefile during compile time
-cfunctions = ctypes.cdll.LoadLibrary("/usr/lib/libasciicodec.so")
+cfunctions = ctypes.cdll.LoadLibrary("/usr/local/lib/libasciicodec.so")
 
 # Please note that all of these functions actually return char *;
 # they must be cast to the proper type before being used, but I am
@@ -61,9 +61,12 @@ def decode_base64(string_in = ""):
     pstring_out = cfunctions.decodeBase64(bytes(string_in, "utf-8"))
     pstring_out = ctypes.cast(pstring_out, ctypes.c_char_p)
     # decode UTF-8 and trim to max comment length
-    string_out = str(pstring_out.value, "utf-8", "replace")[:10000]
-    cfunctions.freechar(pstring_out)
-    return string_out
+    if pstring_out.value == None:
+        return "Input invalid."
+    else:
+        string_out = str(pstring_out.value, "utf-8", "replace")[:10000]
+        cfunctions.freechar(pstring_out)
+        return string_out
 
 # ROT13 is the same for encoding and decoding, so only one function
 def rot13(string_in = ""):
@@ -106,9 +109,12 @@ def decode_dec(decstr = ""):
     pstring = cfunctions.decodeDec(bytes(decstr, "utf-8"))
     pstring = ctypes.cast(pstring, ctypes.c_char_p)
     # decode UTF-8 and trim to max comment length
-    string = str(pstring.value, "utf-8", "replace")[:10000]
-    cfunctions.freechar(pstring)
-    return string
+    if pstring.value == None:
+        return "Input invalid."
+    else:
+        string = str(pstring.value, "utf-8", "replace")[:10000]
+        cfunctions.freechar(pstring)
+        return string
 
 # string to hex
 def encode_hex(string = ""):
@@ -124,9 +130,12 @@ def decode_hex(hexstr = ""):
     pstring = cfunctions.decodeHex(bytes(hexstr, "utf-8"))
     pstring = ctypes.cast(pstring, ctypes.c_char_p)
     # decode UTF-8 and trim to max comment length
-    string = str(pstring.value, "utf-8", "replace")[:10000]
-    cfunctions.freechar(pstring)
-    return string
+    if pstring.value == None:
+        return "Input invalid."
+    else:
+        string = str(pstring.value, "utf-8", "replace")[:10000]
+        cfunctions.freechar(pstring)
+        return string
 
 # string to binary
 def encode_bin(string = ""):
@@ -142,6 +151,9 @@ def decode_bin(binstr = ""):
     pstring = cfunctions.decodeBin(bytes(binstr, "utf-8"))
     pstring = ctypes.cast(pstring, ctypes.c_char_p)
     # decode UTF-8 and trim to max comment length
-    string = str(pstring.value, "utf-8", "replace")[:10000]
-    cfunctions.freechar(pstring)
-    return string
+    if pstring.value == None:
+        return "Input invalid."
+    else:
+        string = str(pstring.value, "utf-8", "replace")[:10000]
+        cfunctions.freechar(pstring)
+        return string

@@ -72,7 +72,7 @@ try:
                     if re.search("(?i)u/asciicodecbot", comment.body): # must be a username mention
                         if "asciicodecbot" not in author.name: # avoid replying to self
                             
-                            match = re.search("(?s)u/asciicodecbot (\w+)(?:(?: ?(?:(?:(\w*)(?: ?(\w*))?)?))?)(?:(: )?)(.*)", comment.body, re.IGNORECASE)  
+                            match = re.search(r"(?s)u/asciicodecbot (\w+)(?:(?: ?(?:(?:(\w*)(?: ?(\w*))?)?))?)(?:(: )?)(.*)", comment.body, re.IGNORECASE)  
                             if match:
                                 command = match.group(1).lower()
                                 code = match.group(2).lower()

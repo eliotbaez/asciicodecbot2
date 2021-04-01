@@ -4,7 +4,8 @@
 #include <stdint.h>
 
 void freechar (char * ptr) {
-	return free (ptr);
+	if (ptr != NULL)
+		free (ptr);
 }
 
 /* decode string of binary into a plaintext string */
@@ -24,11 +25,9 @@ char * decodeBin (const char * binStr) {
 	for (index = 0 ; index < length; index++) {
 		num = binStr[index];
 		if (!(num == '0' || num == '1' || num == ' ')) {
-			/* return error message if invalid characters are found */
-			stringOut = (char *) realloc (stringOut, 20 * sizeof (char));
-			strcpy (stringOut, "Input invalid.");
-
-			return stringOut;
+			/* return NULL if invalid characters are found */
+			free (stringOut);
+			return NULL;
 		}
 	}
 	
@@ -137,12 +136,10 @@ char * decodeHex (const char * hexStr) {
 					('0' <= num && num <= '9')
 					|| ('A' <= num && num <= 'F')
 					|| num == ' ')) {
-			/* return error message if invalid characters are found */
-			stringOut = (char *) realloc (stringOut, 20 * sizeof (char));
-			strcpy (stringOut, "Input invalid.");
+			/* return NULL if invalid characters are found */
+			free (stringOut);
 			free (hexStrCaps);
-			
-			return stringOut;
+			return NULL;
 		}
 	}
 
@@ -244,11 +241,9 @@ char * decodeDec (const char * decStr) {
 	for (index = 0; index < length; index++) {
 		buf = decStr[index];
 		if (!(('0' <= buf && buf <= '9') || buf == ' ')) {
-			/* return error message if invalid characters are found */
-			stringOut = (char *) realloc (stringOut, 20 * sizeof (char));
-			strcpy (stringOut, "Input invalid.");
-
-			return stringOut;
+			/* return NULL if invalid characters are found */
+			free (stringOut);
+			return NULL;
 		}
 	}
 
@@ -528,23 +523,19 @@ char * decodeBase64 (const char * stringIn) {
 			|| ('0' <= buf && buf <= '9')
 			|| buf == '/'
 			|| buf == '+')) {
-			/* return error message if invalid characters are found */
-			stringOut = (char *) realloc (stringOut, 20 * sizeof (char));
-			strcpy (stringOut, "Input invalid.");
-
+			/* return NULL if invalid characters are found */
+			free (stringOut);
 			free (adjustedStringIn);
-			return stringOut;
+			return NULL;
 		}
 	}
 
 	/* if no invalid characters are found */
 	if (length % 4 == 1) {
-		/* return error message if not enough or too many characters */
-		stringOut = (char *) realloc (stringOut, 20 * sizeof (char));
-		strcpy (stringOut, "Input invalid.");
-		
+		/* return NULL if not enough or too many characters */
+		free (stringOut);
 		free (adjustedStringIn);
-		return stringOut;
+		return NULL;
 	}
 
 	/* translate ASCII characters into integers */
