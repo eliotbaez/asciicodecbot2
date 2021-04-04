@@ -602,7 +602,7 @@ char * decodeBin (const char * binStr) {
 	size_t start = 0;
 	size_t end;
 	size_t length = strlen (binStr);
-	int x;
+	int x;	/* iterator thingy */
 	
 	stringOut = decodenBin (binStr, length);
 	if (stringOut != NULL)
@@ -659,8 +659,64 @@ char * encodeBin (const char * string) {
 
 /* decode string of hexadecimal into plaintext */
 char * decodeHex (const char * hexStr) {
+	char * stringOut;
+	size_t start = 0;
+	size_t end;
 	size_t length = strlen (hexStr);
-	return decodenHex (hexStr, length);
+	int x;	/* iterator thingy */
+	char buf;	/* buffer for iterator thingy */
+	
+	stringOut = decodenHex (hexStr, length);
+	if (stringOut != NULL)
+		return stringOut;
+	
+	/* set the start variable to the index of the first valid byte */
+	start = 0;
+	while (start < length - 2) {
+		for (x = 0; x < 2; x++) {
+			buf = hexStr[start + x];
+			if (!(('0' <= buf && buf <= '9')
+				|| ('a' <= buf && buf <= 'f')
+				|| ('A' <= buf && buf <= 'F'))) {
+				start += x + 1;
+				break;
+			}
+		}
+		if (x == 2)
+			break;
+	}
+	/* Return null if there is literally no valid data in the string;
+	   we're certain of this if the total length of the string will be
+	   less than 8 characters. */
+	if (length - start < 2)
+		return NULL;
+
+	stringOut = decodenHex (hexStr += start, length -= start);
+	if (stringOut != NULL)
+		return stringOut;
+
+	/* that didn't work, now let's try trimming invalid characters from
+	   the end of the string */
+	end = 2;
+	while (end < length - 3) {
+		if (hexStr[end] == ' ')
+			end++;
+		for (x = 0; x < 2; x++) {
+			buf = hexStr[end + x];
+			if (!(('0' <= buf && buf <= '9')
+				|| ('a' <= buf && buf <= 'f')
+				|| ('A' <= buf && buf <= 'F'))) {
+				break;
+			}
+		}
+		if (x != 2)
+			break;
+		end += 2;
+	}
+	
+	/* if any of that didn't work, just give up and return whatever decodenBin
+	   returns */
+	return decodenHex (hexStr, end);
 }
 
 /* encode plaintext string into hexadeximal */
