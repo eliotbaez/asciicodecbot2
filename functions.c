@@ -6,6 +6,9 @@
 /* TODO:
    create wrapper functions that automatically detect length and
    starting position of the string to be decoded */
+/* TODO:
+   return null pointer from decode functions if the function is
+   about to return an empty string */
 
 void freechar (char * ptr) {
 	if (ptr != NULL)
@@ -597,22 +600,55 @@ char * decodenBase64 (const char * stringIn, size_t length) {
 char * decodeBin (const char * binStr) {
 	char * stringOut;
 	size_t start = 0;
+	size_t end;
 	size_t length = strlen (binStr);
+	int x;
+	
 	stringOut = decodenBin (binStr, length);
-
-	if (stringOut == NULL) {
-		/* try to find beginning of binary data */
-		while (start < length) {
-			if (binStr[start] == '0' || binStr[start] == '1')
-				break;
-			start++;
-		}
-		/* return null if there is literally no valid data in the string */
-		if (start == length) return NULL;
-		return decodenBin (binStr + start, length - start);
-	} else {
+	if (stringOut != NULL)
 		return stringOut;
+	
+	/* set the start variable to the index of the first valid byte */
+	start = 0;
+	while (start < length - 8) {
+		for (x = 0; x < 8; x++) {
+			if (binStr[start + x] != '0' && binStr[start + x] != '1') {
+				start += x + 1;
+				break;
+			}
+		}
+		if (x == 8)
+			break;
 	}
+	/* Return null if there is literally no valid data in the string;
+	   we're certain of this if the total length of the string will be
+	   less than 8 characters. */
+	if (length - start < 8)
+		return NULL;
+
+	stringOut = decodenBin (binStr += start, length -= start);
+	if (stringOut != NULL)
+		return stringOut;
+
+	/* that didn't work, now let's try trimming invalid characters from
+	   the end of the string */
+	end = 8;
+	while (end < length - 9) {
+		if (binStr[end] == ' ')
+			end++;
+		for (x = 0; x < 8; x++) {
+			if (binStr[end + x] != '0' && binStr[end + x] != '1') {
+				break;
+			}
+		}
+		if (x != 8)
+			break;
+		end += 8;
+	}
+	
+	/* if any of that didn't work, just give up and return whatever decodenBin
+	   returns */
+	return decodenBin (binStr, end);
 }
 
 /* encode plaintext string into binary */
